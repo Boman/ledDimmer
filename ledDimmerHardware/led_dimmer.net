@@ -1,0 +1,643 @@
+# EESchema Netlist Version 1.1 created  Mo 17 Sep 2012 14:51:39 CEST
+(
+ ( /5055C92D $noname  P6 CONN_2X2 {Lib=CONN_2X2}
+  (    1 /ADC0 )
+  (    2 /SCL )
+  (    3 /ADC1 )
+  (    4 /SDA )
+ )
+ ( /5055AD85 $noname  R14 10k {Lib=R}
+  (    1 N-000053 )
+  (    2 /GND_LED )
+ )
+ ( /5055AD27 $noname  R7 10k {Lib=R}
+  (    1 GND )
+  (    2 N-000054 )
+ )
+ ( /5055AD20 $noname  R5 10k {Lib=R}
+  (    1 GND )
+  (    2 N-000064 )
+ )
+ ( /5055ACEE $noname  R2 10k {Lib=R}
+  (    1 GND )
+  (    2 N-000065 )
+ )
+ ( /5055A5AD $noname  C9 22pF {Lib=C}
+  (    1 N-000061 )
+  (    2 GND )
+ )
+ ( /5055A59B $noname  C8 22pF {Lib=C}
+  (    1 N-000062 )
+  (    2 GND )
+ )
+ ( /5055A587 $noname  X1 20MHz {Lib=CRYSTAL}
+  (    1 N-000062 )
+  (    2 N-000061 )
+ )
+ ( /504BC708 $noname  P3 CONN_1 {Lib=CONN_1}
+  (    1 GND )
+ )
+ ( /504BC707 $noname  P4 CONN_1 {Lib=CONN_1}
+  (    1 GND )
+ )
+ ( /504BC700 $noname  P2 CONN_1 {Lib=CONN_1}
+  (    1 GND )
+ )
+ ( /504BC6F1 $noname  P1 CONN_1 {Lib=CONN_1}
+  (    1 GND )
+ )
+ ( /50498805 $noname  R15 20 {Lib=R}
+  (    1 N-000060 )
+  (    2 N-000053 )
+ )
+ ( /50498258 $noname  R13 180 {Lib=R}
+  (    1 N-000021 )
+  (    2 /PWM_LED )
+ )
+ ( /504981A9 $noname  U2 PHTRANS {Lib=PHTRANS}
+  (    1 N-000021 )
+  (    2 GND )
+  (    4 N-000018 )
+  (    5 /V_LED )
+  (    6 ? )
+ )
+ ( /504914A8 $noname  IC3 MCP1407 {Lib=MCP1407}
+  (    1 /V_LED )
+  (    2 N-000018 )
+  (    3 ? )
+  (    4 GND )
+  (    5 /GND_LED )
+  (    6 N-000060 )
+  (    7 N-000060 )
+  (    8 /V_LED )
+ )
+ ( /50490C93 $noname  C11 4.7uF {Lib=CP1}
+  (    1 N-000066 )
+  (    2 GND )
+ )
+ ( /50490C24 $noname  R12 100 {Lib=R}
+  (    1 N-000066 )
+  (    2 +5V )
+ )
+ ( /50490BCA $noname  K1 IR {Lib=CONN_3}
+  (    1 GND )
+  (    2 N-000066 )
+  (    3 /IR_IN )
+ )
+ ( /50490AD6 $noname  C5 470uF {Lib=CP1}
+  (    1 /V_RGB )
+  (    2 GND )
+ )
+ ( /50490AAE $noname  C6 100nF {Lib=C}
+  (    1 /V_RGB )
+  (    2 GND )
+ )
+ ( /50490AAA $noname  C7 100nF {Lib=C}
+  (    1 +5V )
+  (    2 GND )
+ )
+ ( /50490A80 $noname  U1 7805 {Lib=7805}
+  (  GND GND )
+  (   VI /V_RGB )
+  (   VO +5V )
+ )
+ ( /50484B84 TQPF44  IC1 ATMEGA1284P-A {Lib=ATMEGA1284P-A}
+  (    1 /MOSI )
+  (    2 /MISO )
+  (    3 /SCK )
+  (    4 /RESET )
+  (    5 +5V )
+  (    6 GND )
+  (    7 N-000062 )
+  (    8 N-000061 )
+  (    9 /Bluetooth_RX )
+  (   10 /Bluetooth_TX )
+  (   11 /BIDIB_RX )
+  (   12 /BIDIB_TX )
+  (   13 /BIDIB_DIR )
+  (   14 ? )
+  (   15 ? )
+  (   16 ? )
+  (   17 +5V )
+  (   18 GND )
+  (   19 /SCL )
+  (   20 /SDA )
+  (   21 ? )
+  (   22 ? )
+  (   23 ? )
+  (   24 ? )
+  (   25 ? )
+  (   26 ? )
+  (   27 +5V )
+  (   28 GND )
+  (   29 ? )
+  (   30 /PWM_B )
+  (   31 /PWM_G )
+  (   32 /PWM_R )
+  (   33 /PWM_LED )
+  (   34 ? )
+  (   35 ? )
+  (   36 /ADC1 )
+  (   37 /ADC0 )
+  (   38 +5V )
+  (   39 GND )
+  (   40 /Touch_In )
+  (   41 /IR_IN )
+  (   42 ? )
+  (   43 ? )
+  (   44 ? )
+ )
+ ( /504908D0 $noname  C1 100nF {Lib=C}
+  (    1 +5V )
+  (    2 GND )
+ )
+ ( /504908CF $noname  C2 100nF {Lib=C}
+  (    1 +5V )
+  (    2 GND )
+ )
+ ( /504908A6 $noname  C4 100nF {Lib=C}
+  (    1 +5V )
+  (    2 GND )
+ )
+ ( /5049088E $noname  C3 100nF {Lib=C}
+  (    1 +5V )
+  (    2 GND )
+ )
+ ( /5049080C $noname  K2 LED {Lib=CONN_3}
+  (    1 /V_LED )
+  (    2 /Touch_Out )
+  (    3 N-000038 )
+ )
+ ( /50490751 $noname  Q4 IRLZ34N {Lib=MOSFET_N}
+  (    D N-000038 )
+  (    G N-000053 )
+  (    S /GND_LED )
+ )
+ ( /5048EA7C $noname  R10 1k {Lib=R}
+  (    1 /Bluetooth_RX )
+  (    2 GND )
+ )
+ ( /5048EA76 $noname  R11 680 {Lib=R}
+  (    1 /Bluetooth_RX )
+  (    2 N-000036 )
+ )
+ ( /5048EA26 $noname  P9 Bluetooth {Lib=CONN_4}
+  (    1 N-000036 )
+  (    2 /Bluetooth_TX )
+  (    3 GND )
+  (    4 +5V )
+ )
+ ( /5048E9FA $noname  P5 Voltage {Lib=CONN_4}
+  (    1 GND )
+  (    2 /V_RGB )
+  (    3 /GND_LED )
+  (    4 /V_LED )
+ )
+ ( /5048E798 $noname  IC2 485 {Lib=485}
+  (    1 /BIDIB_RX )
+  (    2 /BIDIB_DIR )
+  (    3 /BIDIB_DIR )
+  (    4 /BIDIB_TX )
+  (    5 GND )
+  (    6 N-000050 )
+  (    7 N-000049 )
+  (    8 +5V )
+ )
+ ( /504868FE $noname  J1 RJ45 {Lib=RJ45}
+  (    1 ? )
+  (    2 ? )
+  (    3 GND )
+  (    4 N-000049 )
+  (    5 N-000050 )
+  (    6 ? )
+  (    7 ? )
+  (    8 ? )
+  (    9 ? )
+ )
+ ( /50486277 $noname  P8 RGB {Lib=CONN_4}
+  (    1 /V_RGB )
+  (    2 N-000031 )
+  (    3 N-000032 )
+  (    4 N-000033 )
+ )
+ ( /50485F5D $noname  R6 100 {Lib=R}
+  (    1 N-000054 )
+  (    2 /PWM_B )
+ )
+ ( /50485F5A $noname  R3 100 {Lib=R}
+  (    1 N-000064 )
+  (    2 /PWM_G )
+ )
+ ( /50485F55 $noname  R1 100 {Lib=R}
+  (    1 N-000065 )
+  (    2 /PWM_R )
+ )
+ ( /50485F35 $noname  Q3 IRLZ34N {Lib=MOSFET_N}
+  (    D N-000033 )
+  (    G N-000054 )
+  (    S GND )
+ )
+ ( /50485F2D $noname  Q2 IRLZ34N {Lib=MOSFET_N}
+  (    D N-000032 )
+  (    G N-000064 )
+  (    S GND )
+ )
+ ( /50485D94 $noname  Q1 IRLZ34N {Lib=MOSFET_N}
+  (    D N-000031 )
+  (    G N-000065 )
+  (    S GND )
+ )
+ ( /50485C68 $noname  R8 220k {Lib=R}
+  (    1 /Touch_In )
+  (    2 +5V )
+ )
+ ( /50485C46 $noname  R9 100 {Lib=R}
+  (    1 N-000035 )
+  (    2 /Touch_In )
+ )
+ ( /50485C31 $noname  C10 1nF {Lib=C}
+  (    1 /Touch_Out )
+  (    2 N-000035 )
+ )
+ ( /50485C1B $noname  D2 1N4148 {Lib=DIODE}
+  (    1 GND )
+  (    2 /Touch_Out )
+ )
+ ( /50485C02 $noname  D1 1N4148 {Lib=DIODE}
+  (    1 /Touch_Out )
+  (    2 +5V )
+ )
+ ( /5048570D $noname  R4 10k {Lib=R}
+  (    1 /RESET )
+  (    2 +5V )
+ )
+ ( /50485614 $noname  P7 ISP {Lib=CONN_3X2}
+  (    1 /MISO )
+  (    2 +5V )
+  (    3 /SCK )
+  (    4 /MOSI )
+  (    5 /RESET )
+  (    6 GND )
+ )
+)
+*
+{ Allowed footprints by component:
+$component R14
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R7
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R5
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R2
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component C9
+ SM*
+ C?
+ C1-1
+$endlist
+$component C8
+ SM*
+ C?
+ C1-1
+$endlist
+$component R15
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R13
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component C11
+ CP*
+ SM*
+$endlist
+$component R12
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component C5
+ CP*
+ SM*
+$endlist
+$component C6
+ SM*
+ C?
+ C1-1
+$endlist
+$component C7
+ SM*
+ C?
+ C1-1
+$endlist
+$component IC1
+ 40DIP-ELL600
+ 40dip600
+$endlist
+$component C1
+ SM*
+ C?
+ C1-1
+$endlist
+$component C2
+ SM*
+ C?
+ C1-1
+$endlist
+$component C4
+ SM*
+ C?
+ C1-1
+$endlist
+$component C3
+ SM*
+ C?
+ C1-1
+$endlist
+$component R10
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R11
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R6
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R3
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R1
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R8
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component R9
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$component C10
+ SM*
+ C?
+ C1-1
+$endlist
+$component D2
+ D?
+ S*
+$endlist
+$component D1
+ D?
+ S*
+$endlist
+$component R4
+ R?
+ SM0603
+ SM0805
+ R?-*
+$endlist
+$endfootprintlist
+}
+{ Pin List by Nets
+Net 10 "+5V" "+5V"
+ IC1 27
+ IC1 17
+ D1 2
+ IC1 38
+ R8 2
+ U1 VO
+ C1 1
+ C2 1
+ C7 1
+ P7 2
+ R4 2
+ IC1 5
+ IC2 8
+ R12 2
+ C3 1
+ C4 1
+ P9 4
+Net 18 "" ""
+ U2 4
+ IC3 2
+Net 20 "/PWM_LED" "PWM_LED"
+ IC1 33
+ R13 2
+Net 21 "" ""
+ U2 1
+ R13 1
+Net 22 "/Bluetooth_RX" "Bluetooth_RX"
+ R10 1
+ IC1 9
+ R11 1
+Net 23 "/Bluetooth_TX" "Bluetooth_TX"
+ P9 2
+ IC1 10
+Net 24 "/BIDIB_RX" "BIDIB_RX"
+ IC1 11
+ IC2 1
+Net 25 "/BIDIB_TX" "BIDIB_TX"
+ IC2 4
+ IC1 12
+Net 26 "/BIDIB_DIR" "BIDIB_DIR"
+ IC2 3
+ IC2 2
+ IC1 13
+Net 27 "/MOSI" "MOSI"
+ P7 4
+ IC1 1
+Net 28 "/MISO" "MISO"
+ P7 1
+ IC1 2
+Net 29 "/SCK" "SCK"
+ P7 3
+ IC1 3
+Net 30 "GND" "GND"
+ R7 1
+ R5 1
+ P5 1
+ IC2 5
+ J1 3
+ R2 1
+ C8 2
+ C9 2
+ P1 1
+ P2 1
+ P4 1
+ P3 1
+ C3 2
+ K1 1
+ C11 2
+ Q1 S
+ Q2 S
+ Q3 S
+ C4 2
+ IC1 39
+ C7 2
+ IC1 18
+ IC1 28
+ IC3 4
+ C1 2
+ U2 2
+ C6 2
+ C2 2
+ C5 2
+ R10 2
+ IC1 6
+ P9 3
+ D2 1
+ U1 GND
+ P7 6
+Net 31 "" ""
+ P8 2
+ Q1 D
+Net 32 "" ""
+ Q2 D
+ P8 3
+Net 33 "" ""
+ P8 4
+ Q3 D
+Net 34 "/RESET" "RESET"
+ IC1 4
+ P7 5
+ R4 1
+Net 35 "" ""
+ C10 2
+ R9 1
+Net 36 "" ""
+ P9 1
+ R11 2
+Net 37 "/GND_LED" "GND_LED"
+ IC3 5
+ R14 2
+ P5 3
+ Q4 S
+Net 38 "" ""
+ Q4 D
+ K2 3
+Net 39 "/Touch_Out" "Touch_Out"
+ C10 1
+ K2 2
+ D2 2
+ D1 1
+Net 46 "/PWM_R" "PWM_R"
+ IC1 32
+ R1 2
+Net 47 "/PWM_G" "PWM_G"
+ IC1 31
+ R3 2
+Net 48 "/PWM_B" "PWM_B"
+ R6 2
+ IC1 30
+Net 49 "" ""
+ IC2 7
+ J1 4
+Net 50 "" ""
+ J1 5
+ IC2 6
+Net 51 "/V_LED" "V_LED"
+ P5 4
+ U2 5
+ IC3 8
+ K2 1
+ IC3 1
+Net 52 "/Touch_In" "Touch_In"
+ R8 1
+ IC1 40
+ R9 2
+Net 53 "" ""
+ R15 2
+ R14 1
+ Q4 G
+Net 54 "" ""
+ Q3 G
+ R6 1
+ R7 2
+Net 55 "/SCL" "SCL"
+ IC1 19
+ P6 2
+Net 56 "/SDA" "SDA"
+ P6 4
+ IC1 20
+Net 57 "/ADC1" "ADC1"
+ IC1 36
+ P6 3
+Net 58 "/ADC0" "ADC0"
+ P6 1
+ IC1 37
+Net 59 "/IR_IN" "IR_IN"
+ K1 3
+ IC1 41
+Net 60 "" ""
+ IC3 7
+ IC3 6
+ R15 1
+Net 61 "" ""
+ IC1 8
+ C9 1
+ X1 2
+Net 62 "" ""
+ IC1 7
+ X1 1
+ C8 1
+Net 63 "/V_RGB" "V_RGB"
+ U1 VI
+ C6 1
+ C5 1
+ P5 2
+ P8 1
+Net 64 "" ""
+ R5 2
+ R3 1
+ Q2 G
+Net 65 "" ""
+ R1 1
+ R2 2
+ Q1 G
+Net 66 "" ""
+ C11 1
+ R12 1
+ K1 2
+}
+#End
