@@ -5,29 +5,60 @@
 #include <util/delay.h>
 #include "uart/uart.h"
 
-#define BOOT_UART_BAUD_RATE     9600     /* Baudrate */
+uint8_t decodeMessage(unsigned char c);
+void program_page(uint32_t page, uint8_t *buf);
+static uint16_t hex2num(const uint8_t * ascii, uint8_t num);
+void parse_hex_input(uint8_t c);
+int main();
+
+#define BOOT_UART_BAUD_RATE     115200     /* Baudrate */
 #define START_SIGN              ':'      /* Hex-Datei Zeilenstartzeichen */
 
-#define ACK_MESSAGE_TYPE                      0x01
-#define SET_LIGHT_MESSAGE_TYPE            0x02
-#define BOOT_MESSAGE_TYPE                    0x06
-#define HEX_MESSAGE_TYPE                      0x07
+#define BOOTLOADER_START_MESSAGE_TYPE				0x01
+#define BOOTLOADER_HEX_MESSAGE_TYPE					0x02
+#define BOOTLOADER_ACK_MESSAGE_TYPE					0x03
 
-unsigned char messageBuffer[11];
+uint8_t messageBuffer[1 + 4 + 32];
+volatile uint8_t messageLength;
+volatile uint8_t messageType;
+volatile uint8_t messageNumber;
 
-unsigned char decodeMessage(unsigned char c) {
-	messageBuffer[messageBuffer[10]] = c;
-	messageBuffer[10]++;
+uint8_t decodeMessage(uint8_t c) {
+	messageBuffer[0]++;
+	messageBuffer[messageBuffer[0]] = c;
 	switch (messageBuffer[0]) {
-	case HEX_MESSAGE_TYPE:
-		if (messageBuffer[10] > 2 && messageBuffer[10] == messageBuffer[1]) {
-			messageBuffer[10] = 0;
-			return HEX_MESSAGE_TYPE;
+	case 1:
+		if (messageBuffer[1] != 'b') {
+			messageBuffer[0] = 0;
 		}
 		break;
-	default:
-		messageBuffer[10] = 0;
+	case 2:
+		if (messageBuffer[1] == 'b') {
+			if (messageBuffer[2] == 'h') {
+				messageType = BOOTLOADER_HEX_MESSAGE_TYPE;
+				messageLength = 4;
+			} else if (messageBuffer[2] == 's') {
+				messageType = BOOTLOADER_START_MESSAGE_TYPE;
+				messageLength = 4;
+			} else {
+				messageBuffer[0] = 0;
+			}
+		} else {
+			messageBuffer[0] = 0;
+		}
 		break;
+	case 4:
+		if (messageBuffer[1] == 'b') {
+			messageNumber = hex2num(&messageBuffer[3], 2);
+			if (messageBuffer[2] == 'h') {
+				messageLength += messageNumber;
+			}
+		}
+		break;
+	}
+	if (messageBuffer[0] > 1 && messageBuffer[0] == messageLength) {
+		messageBuffer[0] = 0;
+		return messageType;
 	}
 	return 0;
 }
@@ -96,6 +127,7 @@ static uint16_t hex2num(const uint8_t * ascii, uint8_t num) {
 
 	return val;
 }
+
 // boolean-defintion for software-flags
 typedef enum {
 	FALSE, TRUE
@@ -210,7 +242,7 @@ void parse_hex_input(uint8_t c) {
 				}
 				/* Puffer voll -> schreibe Page */
 				if (flash_cnt == SPM_PAGESIZE) {
-					uart_puts("P\n\r");
+					uart_puts("P");
 					_delay_ms(100);
 					program_page((uint16_t) flash_page, flash_data);
 					memset(flash_data, 0xFF, sizeof(flash_data));
@@ -228,7 +260,7 @@ void parse_hex_input(uint8_t c) {
 				hex_check &= 0x00FF;
 				/* Dateiende -> schreibe Restdaten */
 				if (hex_type == 1) {
-					uart_puts("P\n\r");
+					uart_puts("P");
 					_delay_ms(100);
 					program_page((uint16_t) flash_page, flash_data);
 					boot_state = BOOT_STATE_EXIT;
@@ -257,7 +289,7 @@ int main() {
 	/* Funktionspointer auf 0x0000 */
 	void (*start)(void) = 0x0000;
 
-	messageBuffer[8] = 0;
+	messageBuffer[0] = 0;
 
 	/* Füllen der Puffer mit definierten Werten */
 	memset(hex_buffer, 0x00, sizeof(hex_buffer));
@@ -272,26 +304,28 @@ int main() {
 	uart_init(UART_BAUD_SELECT(BOOT_UART_BAUD_RATE,F_CPU));
 	sei();
 
-	uart_puts("Hex-Bootloader");
-	_delay_ms(2000);
+	uart_puts("bootloader");
 
 	do {
 		c = uart_getc();
 		if (!(c & UART_NO_DATA)) {
-			switch (decodeMessage((unsigned char) c)) {
-			case HEX_MESSAGE_TYPE:
-				for (int i = 2; i < messageBuffer[1]; ++i) {
+			switch (decodeMessage((uint8_t) c)) {
+			case BOOTLOADER_HEX_MESSAGE_TYPE:
+				for (uint8_t i = 5; i < 5 + messageNumber; ++i) {
 					parse_hex_input(messageBuffer[i]);
-					uart_putc(messageBuffer[i]);
 				}
-				uart_puts("empf");
-				uart_putc(ACK_MESSAGE_TYPE);
+				uart_puts("ba");
+				break;
+			case BOOTLOADER_START_MESSAGE_TYPE:
+				if (messageNumber == 0) {
+					boot_state = BOOT_STATE_EXIT;
+				}
 				break;
 			}
 		}
 	} while (boot_state != BOOT_STATE_EXIT);
 
-	uart_puts("Reset AVR!\n\r");
+	uart_puts("reset AVR");
 	_delay_ms(1000);
 
 	/* Interrupt Vektoren wieder gerade biegen */

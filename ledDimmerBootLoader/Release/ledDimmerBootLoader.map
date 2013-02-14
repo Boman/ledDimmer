@@ -13,8 +13,11 @@ Allocating common symbols
 Common symbol       size              file
 
 temp                0x1               ./src/main.o
+messageNumber       0x1               ./src/main.o
+messageLength       0x1               ./src/main.o
+messageType         0x1               ./src/main.o
 flash_data          0x100             ./src/main.o
-messageBuffer       0xb               ./src/main.o
+messageBuffer       0x25              ./src/main.o
 hex_buffer          0x5               ./src/main.o
 
 Memory Configuration
@@ -129,7 +132,7 @@ Address of section .text set to 0x1f000
 .rela.plt
  *(.rela.plt)
 
-.text           0x000000000001f000      0x8d6
+.text           0x000000000001f000      0x92c
  *(.vectors)
  .vectors       0x000000000001f000       0x8c /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
                 0x000000000001f000                __vectors
@@ -231,28 +234,28 @@ Address of section .text set to 0x1f000
                 0x000000000001f388                uart1_putc
                 0x000000000001f3b2                uart1_puts
                 0x000000000001f3da                uart1_puts_p
- .text          0x000000000001f3f6      0x4ce ./src/main.o
-                0x000000000001f440                decodeMessage
-                0x000000000001f47e                program_page
-                0x000000000001f51e                parse_hex_input
-                0x000000000001f7ce                main
- .text          0x000000000001f8c4        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
- .text          0x000000000001f8c4        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
- .text          0x000000000001f8c4        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
- .text          0x000000000001f8c4        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memset.o)
-                0x000000000001f8c4                . = ALIGN (0x2)
+ .text          0x000000000001f3f6      0x524 ./src/main.o
+                0x000000000001f43e                decodeMessage
+                0x000000000001f4dc                program_page
+                0x000000000001f57c                parse_hex_input
+                0x000000000001f846                main
+ .text          0x000000000001f91a        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
+ .text          0x000000000001f91a        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
+ .text          0x000000000001f91a        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
+ .text          0x000000000001f91a        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memset.o)
+                0x000000000001f91a                . = ALIGN (0x2)
  *(.text.*)
- .text.libgcc   0x000000000001f8c4        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
- .text.libgcc   0x000000000001f8c4        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
- .text.libgcc   0x000000000001f8c4        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
+ .text.libgcc   0x000000000001f91a        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
+ .text.libgcc   0x000000000001f91a        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
+ .text.libgcc   0x000000000001f91a        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
  .text.avr-libc
-                0x000000000001f8c4        0xe /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memset.o)
-                0x000000000001f8c4                memset
-                0x000000000001f8d2                . = ALIGN (0x2)
+                0x000000000001f91a        0xe /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memset.o)
+                0x000000000001f91a                memset
+                0x000000000001f928                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x000000000001f8d2        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
-                0x000000000001f8d2                exit
-                0x000000000001f8d2                _exit
+ .fini9         0x000000000001f928        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
+                0x000000000001f928                exit
+                0x000000000001f928                _exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -271,68 +274,70 @@ Address of section .text set to 0x1f000
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x000000000001f8d2        0x4 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
+ .fini0         0x000000000001f928        0x4 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
  *(.fini0)
-                0x000000000001f8d6                _etext = .
+                0x000000000001f92c                _etext = .
 
-.data           0x0000000000800100       0x28 load address 0x000000000001f8d6
+.data           0x0000000000800100       0x1c load address 0x000000000001f92c
                 0x0000000000800100                PROVIDE (__data_start, .)
  *(.data)
  .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
  .data          0x0000000000800100        0x0 ./src/uart/uart.o
- .data          0x0000000000800100       0x27 ./src/main.o
-                0x0000000000800125                boot_state
-                0x0000000000800126                flash_page_flag
- .data          0x0000000000800127        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
- .data          0x0000000000800127        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
- .data          0x0000000000800127        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
- .data          0x0000000000800127        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memset.o)
+ .data          0x0000000000800100       0x1c ./src/main.o
+                0x000000000080011a                boot_state
+                0x000000000080011b                flash_page_flag
+ .data          0x000000000080011c        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
+ .data          0x000000000080011c        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
+ .data          0x000000000080011c        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
+ .data          0x000000000080011c        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memset.o)
  *(.data*)
  *(.rodata)
  *(.rodata*)
  *(.gnu.linkonce.d*)
-                0x0000000000800128                . = ALIGN (0x2)
- *fill*         0x0000000000800127        0x1 00
-                0x0000000000800128                _edata = .
-                0x0000000000800128                PROVIDE (__data_end, .)
+                0x000000000080011c                . = ALIGN (0x2)
+                0x000000000080011c                _edata = .
+                0x000000000080011c                PROVIDE (__data_end, .)
 
-.bss            0x0000000000800128      0x1a9
-                0x0000000000800128                PROVIDE (__bss_start, .)
+.bss            0x000000000080011c      0x1c6
+                0x000000000080011c                PROVIDE (__bss_start, .)
  *(.bss)
- .bss           0x0000000000800128        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
- .bss           0x0000000000800128       0x8a ./src/uart/uart.o
- .bss           0x00000000008001b2        0xe ./src/main.o
-                0x00000000008001b2                hex_addr
-                0x00000000008001b4                flash_page
-                0x00000000008001b6                hex_check
-                0x00000000008001b8                flash_cnt
-                0x00000000008001ba                parser_state
-                0x00000000008001bb                hex_cnt
-                0x00000000008001bc                hex_size
-                0x00000000008001bd                hex_data_cnt
-                0x00000000008001be                hex_type
-                0x00000000008001bf                hex_checksum
- .bss           0x00000000008001c0        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
- .bss           0x00000000008001c0        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
- .bss           0x00000000008001c0        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
- .bss           0x00000000008001c0        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memset.o)
+ .bss           0x000000000080011c        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
+ .bss           0x000000000080011c       0x8a ./src/uart/uart.o
+ .bss           0x00000000008001a6        0xe ./src/main.o
+                0x00000000008001a6                hex_addr
+                0x00000000008001a8                flash_page
+                0x00000000008001aa                hex_check
+                0x00000000008001ac                flash_cnt
+                0x00000000008001ae                parser_state
+                0x00000000008001af                hex_cnt
+                0x00000000008001b0                hex_size
+                0x00000000008001b1                hex_data_cnt
+                0x00000000008001b2                hex_type
+                0x00000000008001b3                hex_checksum
+ .bss           0x00000000008001b4        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
+ .bss           0x00000000008001b4        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
+ .bss           0x00000000008001b4        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
+ .bss           0x00000000008001b4        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memset.o)
  *(.bss*)
  *(COMMON)
- COMMON         0x00000000008001c0      0x111 ./src/main.o
-                0x00000000008001c0                temp
-                0x00000000008001c1                flash_data
-                0x00000000008002c1                messageBuffer
-                0x00000000008002cc                hex_buffer
-                0x00000000008002d1                PROVIDE (__bss_end, .)
-                0x000000000001f8d6                __data_load_start = LOADADDR (.data)
-                0x000000000001f8fe                __data_load_end = (__data_load_start + SIZEOF (.data))
+ COMMON         0x00000000008001b4      0x12e ./src/main.o
+                0x00000000008001b4                temp
+                0x00000000008001b5                messageNumber
+                0x00000000008001b6                messageLength
+                0x00000000008001b7                messageType
+                0x00000000008001b8                flash_data
+                0x00000000008002b8                messageBuffer
+                0x00000000008002dd                hex_buffer
+                0x00000000008002e2                PROVIDE (__bss_end, .)
+                0x000000000001f92c                __data_load_start = LOADADDR (.data)
+                0x000000000001f948                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x00000000008002d1        0x0
-                0x00000000008002d1                PROVIDE (__noinit_start, .)
+.noinit         0x00000000008002e2        0x0
+                0x00000000008002e2                PROVIDE (__noinit_start, .)
  *(.noinit*)
-                0x00000000008002d1                PROVIDE (__noinit_end, .)
-                0x00000000008002d1                _end = .
-                0x00000000008002d1                PROVIDE (__heap_start, .)
+                0x00000000008002e2                PROVIDE (__noinit_end, .)
+                0x00000000008002e2                _end = .
+                0x00000000008002e2                PROVIDE (__heap_start, .)
 
 .eeprom         0x0000000000810000        0x0
  *(.eeprom*)

@@ -4,12 +4,18 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../src/ledDimmer.c \
+../src/ledState.c \
 ../src/main.c 
 
 OBJS += \
+./src/ledDimmer.o \
+./src/ledState.o \
 ./src/main.o 
 
 C_DEPS += \
+./src/ledDimmer.d \
+./src/ledState.d \
 ./src/main.d 
 
 

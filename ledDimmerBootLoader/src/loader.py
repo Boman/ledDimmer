@@ -5,15 +5,15 @@ from serial import *
 from time import sleep
 import binascii
 
-def sendMessageAndWait(ser, message):
-    for c in message:
+def sendMessageAndWait(ser, messageField):
+    for c in messageField:
         ser.write(chr(c))
-        #print '>', chr(c)
+        print '>', chr(c)
     while True:
         sleep(0.001)
         data = ser.read(1)
         if len(data) > 0:
-            #print '<', data
+            print '<', data
             if ord(data) == 1:
                 return
 

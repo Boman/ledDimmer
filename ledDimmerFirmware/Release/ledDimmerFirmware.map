@@ -1,5 +1,7 @@
 Archive member included because of file (symbol)
 
+/usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_udivmodsi4.o)
+                              ./src/main.o (__udivmodsi4)
 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
                               /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o (exit)
 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
@@ -12,7 +14,17 @@ Archive member included because of file (symbol)
 Allocating common symbols
 Common symbol       size              file
 
-messageBuffer       0xb               ./src/main.o
+pwm_mask            0x9               ./src/ledDimmer.o
+messageNumber       0x1               ./src/main.o
+pwm_sync            0x1               ./src/ledDimmer.o
+pwm_timing_tmp      0x12              ./src/ledDimmer.o
+pwm_setting         0x8               ./src/ledDimmer.o
+messageLength       0x1               ./src/main.o
+messageType         0x1               ./src/main.o
+pwm_timing          0x12              ./src/ledDimmer.o
+pwm_mask_tmp        0x9               ./src/ledDimmer.o
+pwm_setting_tmp     0x9               ./src/ledDimmer.o
+messageBuffer       0x1d              ./src/main.o
 
 Memory Configuration
 
@@ -32,6 +44,8 @@ LOAD /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
 LOAD ./src/uart/uart.o
 LOAD ./src/irmp/irmp.o
 LOAD ./src/irmp/irmpextlog.o
+LOAD ./src/ledDimmer.o
+LOAD ./src/ledState.o
 LOAD ./src/main.o
 LOAD /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a
 LOAD /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a
@@ -127,7 +141,7 @@ LOAD /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a
 .rela.plt
  *(.rela.plt)
 
-.text           0x0000000000000000      0xe5a
+.text           0x0000000000000000     0x1290
  *(.vectors)
  .vectors       0x0000000000000000       0x8c /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
                 0x0000000000000000                __vectors
@@ -136,41 +150,41 @@ LOAD /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a
  *(.progmem.gcc*)
  *(.progmem*)
  .progmem.data  0x000000000000008c       0x77 ./src/irmp/irmp.o
- .progmem.data  0x0000000000000103        0x3 ./src/main.o
-                0x0000000000000106                . = ALIGN (0x2)
-                0x0000000000000106                __trampolines_start = .
+                0x0000000000000104                . = ALIGN (0x2)
+ *fill*         0x0000000000000103        0x1 00
+                0x0000000000000104                __trampolines_start = .
  *(.trampolines)
- .trampolines   0x0000000000000106        0x0 linker stubs
+ .trampolines   0x0000000000000104        0x0 linker stubs
  *(.trampolines*)
-                0x0000000000000106                __trampolines_end = .
+                0x0000000000000104                __trampolines_end = .
  *(.jumptables)
  *(.jumptables*)
  *(.lowtext)
  *(.lowtext*)
-                0x0000000000000106                __ctors_start = .
+                0x0000000000000104                __ctors_start = .
  *(.ctors)
-                0x0000000000000106                __ctors_end = .
-                0x0000000000000106                __dtors_start = .
+                0x0000000000000104                __ctors_end = .
+                0x0000000000000104                __dtors_start = .
  *(.dtors)
-                0x0000000000000106                __dtors_end = .
+                0x0000000000000104                __dtors_end = .
  SORT(*)(.ctors)
  SORT(*)(.dtors)
  *(.init0)
- .init0         0x0000000000000106        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
-                0x0000000000000106                __init
+ .init0         0x0000000000000104        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
+                0x0000000000000104                __init
  *(.init0)
  *(.init1)
  *(.init1)
  *(.init2)
- .init2         0x0000000000000106        0xc /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
+ .init2         0x0000000000000104        0xc /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
  *(.init2)
  *(.init3)
  *(.init3)
  *(.init4)
- .init4         0x0000000000000112       0x1a /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
-                0x0000000000000112                __do_copy_data
- .init4         0x000000000000012c       0x10 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
-                0x000000000000012c                __do_clear_bss
+ .init4         0x0000000000000110       0x1a /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
+                0x0000000000000110                __do_copy_data
+ .init4         0x000000000000012a       0x10 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
+                0x000000000000012a                __do_clear_bss
  *(.init4)
  *(.init5)
  *(.init5)
@@ -181,81 +195,90 @@ LOAD /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a
  *(.init8)
  *(.init8)
  *(.init9)
- .init9         0x000000000000013c        0x8 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
+ .init9         0x000000000000013a        0x8 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
  *(.init9)
  *(.text)
- .text          0x0000000000000144        0x4 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
-                0x0000000000000144                __vector_22
-                0x0000000000000144                __vector_1
-                0x0000000000000144                __vector_32
-                0x0000000000000144                __vector_34
-                0x0000000000000144                __vector_24
-                0x0000000000000144                __vector_12
-                0x0000000000000144                __bad_interrupt
-                0x0000000000000144                __vector_6
-                0x0000000000000144                __vector_31
-                0x0000000000000144                __vector_3
-                0x0000000000000144                __vector_23
-                0x0000000000000144                __vector_30
-                0x0000000000000144                __vector_25
-                0x0000000000000144                __vector_11
-                0x0000000000000144                __vector_13
-                0x0000000000000144                __vector_17
-                0x0000000000000144                __vector_19
-                0x0000000000000144                __vector_7
-                0x0000000000000144                __vector_27
-                0x0000000000000144                __vector_5
-                0x0000000000000144                __vector_33
-                0x0000000000000144                __vector_4
-                0x0000000000000144                __vector_9
-                0x0000000000000144                __vector_2
-                0x0000000000000144                __vector_15
-                0x0000000000000144                __vector_8
-                0x0000000000000144                __vector_26
-                0x0000000000000144                __vector_14
-                0x0000000000000144                __vector_10
-                0x0000000000000144                __vector_16
-                0x0000000000000144                __vector_18
- .text          0x0000000000000148      0x328 ./src/uart/uart.o
-                0x0000000000000148                __vector_20
-                0x00000000000001ac                __vector_21
-                0x0000000000000208                uart_init
-                0x000000000000023a                uart_getc
-                0x000000000000026e                uart_putc
-                0x0000000000000298                uart_puts
-                0x00000000000002c0                uart_puts_p
-                0x00000000000002dc                __vector_28
-                0x0000000000000340                __vector_29
-                0x000000000000039c                uart1_init
-                0x00000000000003ce                uart1_getc
-                0x0000000000000402                uart1_putc
-                0x000000000000042c                uart1_puts
-                0x0000000000000454                uart1_puts_p
- .text          0x0000000000000470      0x8a2 ./src/irmp/irmp.o
-                0x0000000000000618                irmp_init
-                0x000000000000061e                irmp_get_data
-                0x000000000000072a                irmp_ISR
- .text          0x0000000000000d12        0x0 ./src/irmp/irmpextlog.o
- .text          0x0000000000000d12      0x132 ./src/main.o
-                0x0000000000000d12                decodeMessage
-                0x0000000000000d70                main
- .text          0x0000000000000e44        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
- .text          0x0000000000000e44        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
- .text          0x0000000000000e44        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
- .text          0x0000000000000e44        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memcpy_P.o)
-                0x0000000000000e44                . = ALIGN (0x2)
+ .text          0x0000000000000142        0x4 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
+                0x0000000000000142                __vector_22
+                0x0000000000000142                __vector_1
+                0x0000000000000142                __vector_34
+                0x0000000000000142                __vector_24
+                0x0000000000000142                __vector_12
+                0x0000000000000142                __bad_interrupt
+                0x0000000000000142                __vector_6
+                0x0000000000000142                __vector_31
+                0x0000000000000142                __vector_3
+                0x0000000000000142                __vector_23
+                0x0000000000000142                __vector_30
+                0x0000000000000142                __vector_25
+                0x0000000000000142                __vector_11
+                0x0000000000000142                __vector_17
+                0x0000000000000142                __vector_19
+                0x0000000000000142                __vector_7
+                0x0000000000000142                __vector_27
+                0x0000000000000142                __vector_5
+                0x0000000000000142                __vector_33
+                0x0000000000000142                __vector_4
+                0x0000000000000142                __vector_9
+                0x0000000000000142                __vector_2
+                0x0000000000000142                __vector_15
+                0x0000000000000142                __vector_8
+                0x0000000000000142                __vector_26
+                0x0000000000000142                __vector_14
+                0x0000000000000142                __vector_10
+                0x0000000000000142                __vector_16
+                0x0000000000000142                __vector_18
+ .text          0x0000000000000146      0x328 ./src/uart/uart.o
+                0x0000000000000146                __vector_20
+                0x00000000000001aa                __vector_21
+                0x0000000000000206                uart_init
+                0x0000000000000238                uart_getc
+                0x000000000000026c                uart_putc
+                0x0000000000000296                uart_puts
+                0x00000000000002be                uart_puts_p
+                0x00000000000002da                __vector_28
+                0x000000000000033e                __vector_29
+                0x000000000000039a                uart1_init
+                0x00000000000003cc                uart1_getc
+                0x0000000000000400                uart1_putc
+                0x000000000000042a                uart1_puts
+                0x0000000000000452                uart1_puts_p
+ .text          0x000000000000046e      0x8a2 ./src/irmp/irmp.o
+                0x0000000000000616                irmp_init
+                0x000000000000061c                irmp_get_data
+                0x0000000000000728                irmp_ISR
+ .text          0x0000000000000d10        0x0 ./src/irmp/irmpextlog.o
+ .text          0x0000000000000d10      0x312 ./src/ledDimmer.o
+                0x0000000000000d10                tausche_zeiger
+                0x0000000000000d52                pwm_update
+                0x0000000000000f5e                __vector_32
+                0x000000000000100c                initDimmer
+ .text          0x0000000000001022        0x0 ./src/ledState.o
+ .text          0x0000000000001022      0x214 ./src/main.o
+                0x0000000000001022                decodeMessage
+                0x0000000000001112                __vector_13
+                0x000000000000119c                timer1_init
+                0x00000000000011b6                main
+ .text          0x0000000000001236        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_udivmodsi4.o)
+ .text          0x0000000000001236        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
+ .text          0x0000000000001236        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
+ .text          0x0000000000001236        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
+ .text          0x0000000000001236        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memcpy_P.o)
+                0x0000000000001236                . = ALIGN (0x2)
  *(.text.*)
- .text.libgcc   0x0000000000000e44        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
- .text.libgcc   0x0000000000000e44        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
- .text.libgcc   0x0000000000000e44        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
+ .text.libgcc   0x0000000000001236       0x44 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_udivmodsi4.o)
+                0x0000000000001236                __udivmodsi4
+ .text.libgcc   0x000000000000127a        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
+ .text.libgcc   0x000000000000127a        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
+ .text.libgcc   0x000000000000127a        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
  .text.avr-libc
-                0x0000000000000e44       0x12 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memcpy_P.o)
-                0x0000000000000e44                memcpy_P
-                0x0000000000000e56                . = ALIGN (0x2)
+                0x000000000000127a       0x12 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memcpy_P.o)
+                0x000000000000127a                memcpy_P
+                0x000000000000128c                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x0000000000000e56        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
-                0x0000000000000e56                exit
-                0x0000000000000e56                _exit
+ .fini9         0x000000000000128c        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
+                0x000000000000128c                exit
+                0x000000000000128c                _exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -274,57 +297,81 @@ LOAD /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x0000000000000e56        0x4 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
+ .fini0         0x000000000000128c        0x4 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
  *(.fini0)
-                0x0000000000000e5a                _etext = .
+                0x0000000000001290                _etext = .
 
-.data           0x0000000000800100       0x38 load address 0x0000000000000e5a
+.data           0x0000000000800100        0xe load address 0x0000000000001290
                 0x0000000000800100                PROVIDE (__data_start, .)
  *(.data)
  .data          0x0000000000800100        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
  .data          0x0000000000800100        0x0 ./src/uart/uart.o
  .data          0x0000000000800100        0x4 ./src/irmp/irmp.o
  .data          0x0000000000800104        0x0 ./src/irmp/irmpextlog.o
- .data          0x0000000000800104       0x33 ./src/main.o
- .data          0x0000000000800137        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
- .data          0x0000000000800137        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
- .data          0x0000000000800137        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
- .data          0x0000000000800137        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memcpy_P.o)
+ .data          0x0000000000800104        0x9 ./src/ledDimmer.o
+                0x0000000000800104                pwm_cnt_max
+                0x0000000000800105                isr_ptr_time
+                0x0000000000800107                main_ptr_time
+                0x0000000000800109                isr_ptr_mask
+                0x000000000080010b                main_ptr_mask
+ .data          0x000000000080010d        0x0 ./src/ledState.o
+ .data          0x000000000080010d        0x0 ./src/main.o
+ .data          0x000000000080010d        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_udivmodsi4.o)
+ .data          0x000000000080010d        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
+ .data          0x000000000080010d        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
+ .data          0x000000000080010d        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
+ .data          0x000000000080010d        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memcpy_P.o)
  *(.data*)
  *(.rodata)
  *(.rodata*)
  *(.gnu.linkonce.d*)
-                0x0000000000800138                . = ALIGN (0x2)
- *fill*         0x0000000000800137        0x1 00
-                0x0000000000800138                _edata = .
-                0x0000000000800138                PROVIDE (__data_end, .)
+                0x000000000080010e                . = ALIGN (0x2)
+ *fill*         0x000000000080010d        0x1 00
+                0x000000000080010e                _edata = .
+                0x000000000080010e                PROVIDE (__data_end, .)
 
-.bss            0x0000000000800138       0xc7
-                0x0000000000800138                PROVIDE (__bss_start, .)
+.bss            0x000000000080010e      0x12a
+                0x000000000080010e                PROVIDE (__bss_start, .)
  *(.bss)
- .bss           0x0000000000800138        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
- .bss           0x0000000000800138       0x8a ./src/uart/uart.o
- .bss           0x00000000008001c2       0x32 ./src/irmp/irmp.o
- .bss           0x00000000008001f4        0x0 ./src/irmp/irmpextlog.o
- .bss           0x00000000008001f4        0x0 ./src/main.o
- .bss           0x00000000008001f4        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
- .bss           0x00000000008001f4        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
- .bss           0x00000000008001f4        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
- .bss           0x00000000008001f4        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memcpy_P.o)
+ .bss           0x000000000080010e        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/crtm1284p.o
+ .bss           0x000000000080010e       0x8a ./src/uart/uart.o
+ .bss           0x0000000000800198       0x32 ./src/irmp/irmp.o
+ .bss           0x00000000008001ca        0x0 ./src/irmp/irmpextlog.o
+ .bss           0x00000000008001ca        0x1 ./src/ledDimmer.o
+ .bss           0x00000000008001cb        0x0 ./src/ledState.o
+ .bss           0x00000000008001cb        0x5 ./src/main.o
+                0x00000000008001cb                timerCounter
+                0x00000000008001cc                centiSeconds
+ .bss           0x00000000008001d0        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_udivmodsi4.o)
+ .bss           0x00000000008001d0        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_exit.o)
+ .bss           0x00000000008001d0        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_copy_data.o)
+ .bss           0x00000000008001d0        0x0 /usr/lib/gcc/avr/4.5.3/avr51/libgcc.a(_clear_bss.o)
+ .bss           0x00000000008001d0        0x0 /usr/lib/gcc/avr/4.5.3/../../../avr/lib/avr51/libc.a(memcpy_P.o)
  *(.bss*)
  *(COMMON)
- COMMON         0x00000000008001f4        0xb ./src/main.o
-                0x00000000008001f4                messageBuffer
-                0x00000000008001ff                PROVIDE (__bss_end, .)
-                0x0000000000000e5a                __data_load_start = LOADADDR (.data)
-                0x0000000000000e92                __data_load_end = (__data_load_start + SIZEOF (.data))
+ COMMON         0x00000000008001d0       0x48 ./src/ledDimmer.o
+                0x00000000008001d0                pwm_mask
+                0x00000000008001d9                pwm_sync
+                0x00000000008001da                pwm_timing_tmp
+                0x00000000008001ec                pwm_setting
+                0x00000000008001f4                pwm_timing
+                0x0000000000800206                pwm_mask_tmp
+                0x000000000080020f                pwm_setting_tmp
+ COMMON         0x0000000000800218       0x20 ./src/main.o
+                0x0000000000800218                messageNumber
+                0x0000000000800219                messageLength
+                0x000000000080021a                messageType
+                0x000000000080021b                messageBuffer
+                0x0000000000800238                PROVIDE (__bss_end, .)
+                0x0000000000001290                __data_load_start = LOADADDR (.data)
+                0x000000000000129e                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x00000000008001ff        0x0
-                0x00000000008001ff                PROVIDE (__noinit_start, .)
+.noinit         0x0000000000800238        0x0
+                0x0000000000800238                PROVIDE (__noinit_start, .)
  *(.noinit*)
-                0x00000000008001ff                PROVIDE (__noinit_end, .)
-                0x00000000008001ff                _end = .
-                0x00000000008001ff                PROVIDE (__heap_start, .)
+                0x0000000000800238                PROVIDE (__noinit_end, .)
+                0x0000000000800238                _end = .
+                0x0000000000800238                PROVIDE (__heap_start, .)
 
 .eeprom         0x0000000000810000        0x0
  *(.eeprom*)
