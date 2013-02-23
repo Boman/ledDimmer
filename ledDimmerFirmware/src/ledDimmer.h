@@ -11,20 +11,22 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdint.h>
-#include <string.h>
+#include <avr/pgmspace.h>
 
+#define LED_DDR		DDRA
 #define LED_PORT		PORTA
-#define LED_G			5
-#define LED_R				6
-#define LED_B				7
+#define LED_G			0
+#define LED_R				1
+#define LED_B				2
 
 // Defines an den Controller und die Anwendung anpassen
-#define F_PWM         600L               // PWM-Frequenz in Hz
-#define PWM_PRESCALER 1                  // Vorteiler für den Timer
-#define PWM_STEPS     256                // PWM-Schritte pro Zyklus(1..256)
+#define F_PWM         100L               // PWM-Frequenz in Hz
+#define PWM_PRESCALER 8                  // Vorteiler für den Timer
+#define PWM_STEPS     1024                // PWM-Schritte pro Zyklus(1..256)
 #define PWM_PORT      LED_PORT              // Port für PWM
-#define PWM_DDR       LED_PORT               // Datenrichtungsregister für PWM
-#define PWM_CHANNELS  8                  // Anzahl der PWM-Kanäle
+#define PWM_DDR       LED_DDR               // Datenrichtungsregister für PWM
+#define PWM_CHANNELS  3                  // Anzahl der PWM-Kanäle
+#define PWM_CHANNEL_OFFSET  5                  // Verschiebung der PWM-Kanäle
 // ab hier nichts ändern, wird alles berechnet
 
 #define T_PWM (F_CPU/(PWM_PRESCALER*F_PWM*PWM_STEPS)) // Systemtakte pro PWM-Takt

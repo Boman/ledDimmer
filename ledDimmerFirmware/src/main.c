@@ -6,6 +6,7 @@
 #include "irmp/irmp.h"
 #include "uart/uart.h"
 #include "ledDimmer.h"
+#include "ledState.h"
 
 #define UART_BAUD_RATE	115200
 
@@ -81,15 +82,28 @@ uint8_t decodeMessage(uint8_t c) {
 
 volatile uint8_t timerCounter = 0;
 volatile uint32_t centiSeconds = 0;
+volatile uint8_t nextCentiSecond = 0;
 
 // Timer 1 output compare A interrupt service routine, called every 1/15000 sec
 ISR(TIMER1_COMPA_vect) {
+	// Implementiere die ISR ohne zunaechst weitere IRQs zuzulassen
+	TIMSK1 = 0; // deactivate Interrupt
+	// Erlaube alle Interrupts (ausser OCIE1A)
+	sei();
+
+	PORTB |= 0x20;
 	(void) irmp_ISR(); // call irmp ISR
 	// call other timer interrupt routines...
 	if (timerCounter++ >= 150) {
+		nextCentiSecond = 1;
 		timerCounter = 0;
-		centiSeconds++;
 	}
+	PORTB &= ~0x20;
+
+	// IRQs global deaktivieren um die OCIE1A-IRQ wieder gefahrlos
+	// aktivieren zu koennen
+	cli();
+	TIMSK1 = 1 << OCIE1A; // OCIE1A: Interrupt by timer compare
 }
 
 void timer1_init(void) {
@@ -105,6 +119,9 @@ int main() {
 
 	messageBuffer[0] = 0;
 
+//	DDRA |= 0xFF;
+//	PORTA = 0xFF;
+
 	uart_init(UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU));
 
 	irmp_init(); // initialize irmp
@@ -117,25 +134,16 @@ int main() {
 	setPWM(LED_R, 0);
 	setPWM(LED_G, 0);
 	setPWM(LED_B, 0);
-
 	pwm_update();
 
-	_delay_ms(2000);
-
-	uint8_t b = 0;
 	while (1) {
-		if (centiSeconds % 30 == 0) {
-			setPWM(LED_B, b++);
-			pwm_update();
+//		PORTB |= 0x20;
+//		PORTB &= ~0x20;
+		if (nextCentiSecond) {
+			nextCentiSecond = 0;
+			centiSeconds++;
+			ledStateCallback();
 		}
-//		for (uint8_t r = 0; r < 256; ++r) {
-//			setPWM(LED_R, r);
-//			_delay_ms(10);
-//		}
-//		for (uint8_t r = 0; r < 256; ++r) {
-//			setPWM(LED_R, 255 - r);
-//			_delay_ms(10);
-//		}
 	}
 
 //	uart_puts("\ngithub.com/Boman/ledDimmer\n");

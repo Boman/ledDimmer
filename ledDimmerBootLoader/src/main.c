@@ -11,7 +11,7 @@ static uint16_t hex2num(const uint8_t * ascii, uint8_t num);
 void parse_hex_input(uint8_t c);
 int main();
 
-#define BOOT_UART_BAUD_RATE     115200     /* Baudrate */
+#define BOOT_UART_BAUD_RATE     9600     /* Baudrate */
 #define START_SIGN              ':'      /* Hex-Datei Zeilenstartzeichen */
 
 #define BOOTLOADER_START_MESSAGE_TYPE				0x01

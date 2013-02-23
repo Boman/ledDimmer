@@ -46,8 +46,8 @@ def bootloader(deviceAdress):
     f = open(hexFileName, 'r')
     content = ''.join(f.readlines())
     f.close()
-    while not lastReceived.endswith("bootloader"):
-        sleep(0.1)
+    #while not lastReceived.endswith("bootloader"):
+    #    sleep(0.1)
     totalLength = len(content)
     lastReceived = ""
     while len(content) > 0:
@@ -95,7 +95,8 @@ bootloaderMenu.add_command(label="Upload Slave Firmware", command=lambda:thread.
 menubar.add_cascade(label="Bootloader", menu=bootloaderMenu)
 root.config(menu=menubar)
 
-ser = serial.Serial('/dev/rfcomm0', 115200, timeout=1)
+#ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+ser = serial.Serial('/dev/rfcomm0', 9600, timeout=1)
 
 thread.start_new_thread(receive, ())
 
