@@ -49,6 +49,29 @@ int8_t signB;
 int16_t errB;
 uint8_t deltaB;
 
+void setLightValue(uint8_t light, uint8_t value) {
+	switch (light) {
+	case LIGHT_ALL_R:
+		rgbUpdateIntervals[0] = 0;
+		valueR = value;
+		setPWM(LED_R, valueR);
+		pwm_update();
+		break;
+	case LIGHT_ALL_G:
+		rgbUpdateIntervals[0] = 0;
+		valueG = value;
+		setPWM(LED_G, valueG);
+		pwm_update();
+		break;
+	case LIGHT_ALL_B:
+		rgbUpdateIntervals[0] = 0;
+		valueB = value;
+		setPWM(LED_B, valueB);
+		pwm_update();
+		break;
+	}
+}
+
 // the callback method called 100 times per second
 void ledStateCallback() {
 	if (--nextUpdateRGBProgramCall == 0) {
@@ -100,7 +123,7 @@ void nextStepRGBProgram() {
 		}
 	}
 	nextUpdateRGBProgramCall = rgbUpdateIntervals[rgbProgramPointer]
-			* pgm_read_word(& speedSteps[rgbSpeed]) / 256;
+			* pgm_read_word(&speedSteps[rgbSpeed]) / 256;
 
 	updateRGBProgram();
 }

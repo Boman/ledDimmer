@@ -927,7 +927,7 @@ Disassembly of section .text:
    1f874:	95 bf       	out	0x35, r25	; 53
    1f876:	82 60       	ori	r24, 0x02	; 2
    1f878:	85 bf       	out	0x35, r24	; 53
-   1f87a:	8a e0       	ldi	r24, 0x0A	; 10
+   1f87a:	81 e8       	ldi	r24, 0x81	; 129
    1f87c:	90 e0       	ldi	r25, 0x00	; 0
    1f87e:	0e 94 c7 f8 	call	0x1f18e	; 0x1f18e <uart_init>
    1f882:	78 94       	sei
