@@ -7,6 +7,14 @@
 
 #include "communication.h"
 
+uint8_t num2hex(uint8_t num) {
+	if (num < 10) {
+		return '0' + num;
+	} else {
+		return 'A' + num - 10;
+	}
+}
+
 uint16_t hex2num(const uint8_t * ascii, uint8_t num) {
 	uint8_t i;
 	uint16_t val = 0;
@@ -31,10 +39,10 @@ uint16_t hex2num(const uint8_t * ascii, uint8_t num) {
 uint8_t messageBuffer0[1 + 4 + 24];
 uint8_t messageLength0;
 uint8_t messageType0;
-uint8_t messageNumber0_0;
-uint8_t messageNumber1_0;
+uint8_t messageNumber0[2];
 
 uint8_t decodeMessage0(uint8_t c) {
+	// MASTER Protocol
 #ifdef MASTER
 	messageBuffer0[0]++;
 	messageBuffer0[messageBuffer0[0]] = c;
@@ -86,13 +94,13 @@ uint8_t decodeMessage0(uint8_t c) {
 		}
 		break;
 	case 4:
-		messageNumber0_0 = hex2num(&messageBuffer0[3], 2);
+		messageNumber0[0] = hex2num(&messageBuffer0[3], 2);
 		if (messageType0 == BOOTLOADER_HEX_MESSAGE_TYPE) {
-			messageLength0 += messageNumber0_0;
+			messageLength0 += messageNumber0[0];
 		}
 		break;
 	case 6:
-		messageNumber1_0 = hex2num(&messageBuffer0[5], 2);
+		messageNumber0[1] = hex2num(&messageBuffer0[5], 2);
 		break;
 	}
 	if (messageBuffer0[0] > 1 && messageBuffer0[0] == messageLength0) {
@@ -100,19 +108,22 @@ uint8_t decodeMessage0(uint8_t c) {
 		return messageType0;
 	}
 #endif
+	// SLAVE Protocol
+#ifdef SLAVE
+#endif
 	return 0;
 }
 
 uint8_t messageBuffer1[1 + 4 + 24];
 uint8_t messageLength1;
 uint8_t messageType1;
-uint8_t messageNumber1;
-uint8_t messageNumber1_1;
+uint8_t messageNumber[2];
 
 uint8_t decodeMessage1(uint8_t c) {
-#ifdef MASTER
 	messageBuffer0[0]++;
 	messageBuffer0[messageBuffer0[0]] = c;
+	// MASTER Protocol
+#ifdef MASTER
 	switch (messageBuffer0[0]) {
 	case 1:
 		if (messageBuffer0[1] != 'b') {
@@ -136,9 +147,39 @@ uint8_t decodeMessage1(uint8_t c) {
 		}
 		break;
 	case 4:
-		messageNumber0_0 = hex2num(&messageBuffer0[3], 2);
+		messageNumber0[0] = hex2num(&messageBuffer0[3], 2);
 		if (messageType0 == BOOTLOADER_HEX_MESSAGE_TYPE) {
-			messageLength0 += messageNumber0_0;
+			messageLength0 += messageNumber0[0];
+		}
+		break;
+	}
+	if (messageBuffer0[0] > 1 && messageBuffer0[0] == messageLength0) {
+		messageBuffer0[0] = 0;
+		return messageType0;
+	}
+#endif
+	// SLAVE Protocol
+#ifdef SLAVE
+	switch (messageBuffer0[0]) {
+		case 1:
+		if (messageBuffer0[1] != 'b') {
+			messageBuffer0[0] = 0;
+		}
+		break;
+		case 2:
+		if (messageBuffer0[1] == 'b') {
+			if (messageBuffer0[2] == 's') {
+				messageType0 = BOOTLOADER_START_MESSAGE_TYPE;
+				messageLength0 = 4;
+			}
+		} else {
+			messageBuffer0[0] = 0;
+		}
+		break;
+		case 4:
+		messageNumber0[0] = hex2num(&messageBuffer0[3], 2);
+		if (messageType0 == BOOTLOADER_HEX_MESSAGE_TYPE) {
+			messageLength0 += messageNumber0[0];
 		}
 		break;
 	}

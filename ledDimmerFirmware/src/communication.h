@@ -26,20 +26,19 @@
 
 #define LIGHT_SET_MESSAGE_TYPE								0x07
 
+uint8_t num2hex(uint8_t num);
 uint16_t hex2num(const uint8_t * ascii, uint8_t num);
 
 extern uint8_t messageBuffer0[1 + 4 + 24];
 extern uint8_t messageLength0;
 extern uint8_t messageType0;
-extern uint8_t messageNumber0_0;
-extern uint8_t messageNumber1_0;
+extern uint8_t messageNumber0[2];
 uint8_t decodeMessage0(uint8_t c);
 
 extern uint8_t messageBuffer1[1 + 4 + 24];
 extern uint8_t messageLength1;
 extern uint8_t messageType1;
-extern uint8_t messageNumber1;
-extern uint8_t messageNumber1_1;
+extern uint8_t messageNumber[2];
 uint8_t decodeMessage1(uint8_t c);
 
 void initCommunication();

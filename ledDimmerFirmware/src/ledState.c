@@ -29,10 +29,11 @@ const uint16_t speedSteps[SPEED_STEPS] PROGMEM = { 8192, 5792, 4096, 2896, 2048,
 		512, 362, 256, 181, 128, 90, 64, 45, 32, 22, 16, 11 };
 
 // time between each rgb program update in centiseconds
-uint16_t rgbUpdateIntervals[LED_PROGRAM_LENGTH] = { 100, 100, 100, 100, 100, 0 };
+uint16_t rgbUpdateIntervals[LED_PROGRAM_LENGTH] = { 100, 200, 100, 100, 100, 100, 0 };
 // the iteration of the rgb led brightnesses
 int8_t rgbProgram[3 * LED_PROGRAM_LENGTH] = { 0, 0, 0, //
-		0, 63, 0, //
+		0, 255, 255, //
+		0, 255, 255, //
 		0, 127, 63, //
 		63, 63, 0, //
 		63, 0, 0 };

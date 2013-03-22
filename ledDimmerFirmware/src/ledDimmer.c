@@ -189,19 +189,15 @@ ISR(TIMER3_COMPA_vect) {
 		} else
 			pwm_cnt++;
 	}
-
-	//TODO
-	PORTB &= ~0x80;
-	PORTB |= PWM_PORT & 0x80;
 }
 
 void initDimmer(void) {
 	// PWM Port einstellen
-	PWM_DDR = 0xFF; // Port als Ausgang
-	DDRB = 0xFF; // Port als Ausgang
+	PWM_DDR = (uint8_t)(0xFF << PWM_CHANNEL_OFFSET); // Port als Ausgang
 
 	// Timer 3 OCRA3, als variablen Timer nutzen
 	//TCCR3B = (1 << CS30); // Timer läuft mit Prescaler 1
+
 	TCCR3B = (1 << CS31); // Timer läuft mit Prescaler 8
 	TIMSK3 |= (1 << OCIE3A); // Interrupt freischalten
 }

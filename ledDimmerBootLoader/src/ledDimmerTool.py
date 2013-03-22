@@ -96,7 +96,7 @@ menubar.add_cascade(label="Bootloader", menu=bootloaderMenu)
 root.config(menu=menubar)
 
 #ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
-ser = serial.Serial('/dev/rfcomm0', 9600, timeout=1)
+ser = serial.Serial('/dev/rfcomm0', 9600)
 
 thread.start_new_thread(receive, ())
 
