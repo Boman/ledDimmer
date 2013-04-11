@@ -17,9 +17,9 @@
 #error "choose Target MASTER or SLAVE"
 #endif
 
-#define RS485_DIRECTION_DDR		DDRB
-#define RS485_DIRECTION_PORT		PORTB
-#define RS485_DIRECTION_PIN			PB4
+#define RS485_DIRECTION_DDR		DDRD
+#define RS485_DIRECTION_PORT		PORTD
+#define RS485_DIRECTION_PIN			PD4
 
 #define F_INTERRUPTS					15000
 #define INTERRUPTS_COUNT		 (F_INTERRUPTS / 100)
@@ -27,8 +27,8 @@
 #define IR_ADRESS						 0xFF00
 
 // Command Codes from the IR-Remote-Control
-#define IR_RGB_DARKER							92
-#define IR_RGB_BRIGHTER						93
+#define IR_RGB_BRIGHTER						92
+#define IR_RGB_DARKER							93
 
 #define IR_PLAY											65
 #define IR_ON_OFF									64

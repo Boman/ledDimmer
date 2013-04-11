@@ -16,9 +16,10 @@
 
 #define UART_BAUD_RATE	9600
 
-#define RS485_INIT				(RS485_DIRECTION_PORT |= 1 << RS485_DIRECTION_PIN)
+#define RS485_INIT				(RS485_DIRECTION_DDR |= 1 << RS485_DIRECTION_PIN)
 #define RS485_SEND			(RS485_DIRECTION_PORT |= 1 << RS485_DIRECTION_PIN)
 #define RS485_RECEIVE		(RS485_DIRECTION_PORT &= ~(1 << RS485_DIRECTION_PIN))
+#define RS485_END_SEND	(UCSR1B |= (1 << TXCIE1))
 
 #define BOOTLOADER_START_MESSAGE_TYPE				0x01
 #define BOOTLOADER_HEX_MESSAGE_TYPE					0x02
@@ -38,7 +39,7 @@ uint8_t decodeMessage0(uint8_t c);
 extern uint8_t messageBuffer1[1 + 4 + 24];
 extern uint8_t messageLength1;
 extern uint8_t messageType1;
-extern uint8_t messageNumber[2];
+extern uint8_t messageNumber1[2];
 uint8_t decodeMessage1(uint8_t c);
 
 void initCommunication();
