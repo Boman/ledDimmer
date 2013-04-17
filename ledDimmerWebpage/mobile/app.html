@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<title></title>
+<link rel="stylesheet"
+	href="https://s3.amazonaws.com/codiqa-cdn/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+<link rel="stylesheet" href="my.css" />
+<script src="https://s3.amazonaws.com/codiqa-cdn/jquery-1.7.2.min.js"></script>
+<script
+	src="https://s3.amazonaws.com/codiqa-cdn/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+<script src="http://autobahn.s3.amazonaws.com/js/autobahn.min.js"></script>
+<script src="my.js"></script>
+<!-- User-generated css -->
+<style>
+</style>
+<!-- User-generated js -->
+<script>
+	try {
+
+		$(function() {
+
+		});
+
+	} catch (error) {
+		console.error("Your javascript has an error: " + error);
+	}
+</script>
+</head>
+<body>
+	<!-- Home -->
+	<div data-role="page" id="page1">
+		<div data-role="content">
+			<div data-role="fieldcontain">
+				<label for="slider_led1_brightness"> LED1 brightness </label> <input
+					id="slider_led1_brightness" type="range" name="slider" value="0"
+					min="0" max="255" data-highlight="true" />
+			</div>
+			<div data-role="fieldcontain">
+				<label for="slider_led2_brightness"> LED2 brightness </label> <input
+					id="slider_led2_brightness" type="range" name="slider" value="0"
+					min="0" max="255" data-highlight="true" />
+			</div>
+			<div data-role="fieldcontain">
+				<label for="slider_rgb_brightness"> RGB brightness </label> <input
+					id="slider_rgb_brightness" type="range" name="slider" value="0"
+					min="0" max="255" data-highlight="true" />
+			</div>
+			<div data-role="fieldcontain">
+				<label for="slider_red"> Red </label> <input id="slider_red"
+					type="range" name="slider" value="0" min="0" max="255"
+					data-highlight="true" />
+			</div>
+			<div data-role="fieldcontain">
+				<label for="slider_green"> Green </label> <input id="slider_green"
+					type="range" name="slider" value="0" min="0" max="255"
+					data-highlight="true" />
+			</div>
+			<div data-role="fieldcontain">
+				<label for="slider_blue"> Blue </label> <input id="slider_blue"
+					type="range" name="slider" value="0" min="0" max="255"
+					data-highlight="true" />
+			</div>
+			<div data-role="fieldcontain">
+				<label for="program_switch"> Program </label> <select name="Program"
+					id="program_switch" data-theme="" data-role="slider">
+					<option value="off">Off</option>
+					<option value="on">On</option>
+				</select>
+			</div>
+			<div data-role="fieldcontain">
+				<select id="program_menu" name="">
+				</select>
+			</div>
+			<div data-role="fieldcontain">
+				<label for="slider_speed"> Speed </label> <input id="slider_speed"
+					type="range" name="slider" value="0" min="0" max="20"
+					data-highlight="true" />
+			</div>
+			<div data-role="fieldcontain">
+				<label for="log"> Log </label>
+				<div id="log"></div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

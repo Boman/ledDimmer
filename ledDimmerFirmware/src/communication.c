@@ -120,8 +120,8 @@ uint8_t messageType1;
 uint8_t messageNumber1[2];
 
 uint8_t decodeMessage1(uint8_t c) {
-	messageBuffer0[0]++;
-	messageBuffer0[messageBuffer0[0]] = c;
+	messageBuffer1[0]++;
+	messageBuffer1[messageBuffer1[0]] = c;
 	// MASTER Protocol
 #ifdef MASTER
 #endif
@@ -129,61 +129,61 @@ uint8_t decodeMessage1(uint8_t c) {
 #ifdef SLAVE
 	switch (messageBuffer1[0]) {
 		case 1:
-			switch (messageBuffer1[1]) {
+		switch (messageBuffer1[1]) {
 			case 'b':
 			case 'l':
-				break;
-			default:
-				messageBuffer1[0] = 0;
-				break;
-			}
 			break;
+			default:
+			messageBuffer1[0] = 0;
+			break;
+		}
+		break;
 		break;
 		case 2:
-			switch (messageBuffer1[1]) {
+		switch (messageBuffer1[1]) {
 			case 'b':
-				switch (messageBuffer1[2]) {
+			switch (messageBuffer1[2]) {
 				case 'a':
-					messageType1 = BOOTLOADER_ACK_MESSAGE_TYPE;
-					messageLength1 = 2;
-					break;
+				messageType1 = BOOTLOADER_ACK_MESSAGE_TYPE;
+				messageLength1 = 2;
+				break;
 				case 'h':
-					messageType1 = BOOTLOADER_HEX_MESSAGE_TYPE;
-					break;
-				case 's':
-					messageType1 = BOOTLOADER_START_MESSAGE_TYPE;
-					messageLength1 = 4;
-					break;
-				default:
-					messageBuffer1[0] = 0;
-					break;
-				}
+				messageType1 = BOOTLOADER_HEX_MESSAGE_TYPE;
 				break;
-			case 'l':
-				switch (messageBuffer1[2]) {
 				case 's':
-					messageType1 = LIGHT_SET_MESSAGE_TYPE;
-					messageLength1 = 6;
-					break;
-				default:
-					messageBuffer1[0] = 0;
-					break;
-				}
+				messageType1 = BOOTLOADER_START_MESSAGE_TYPE;
+				messageLength1 = 4;
 				break;
-			default:
+				default:
 				messageBuffer1[0] = 0;
 				break;
 			}
 			break;
-		case 4:
-			messageNumber1[0] = hex2num(&messageBuffer1[3], 2);
-			if (messageType1 == BOOTLOADER_HEX_MESSAGE_TYPE) {
-				messageLength1 += messageNumber1[0];
+			case 'l':
+			switch (messageBuffer1[2]) {
+				case 's':
+				messageType1 = LIGHT_SET_MESSAGE_TYPE;
+				messageLength1 = 6;
+				break;
+				default:
+				messageBuffer1[0] = 0;
+				break;
 			}
 			break;
-		case 6:
-			messageNumber1[1] = hex2num(&messageBuffer1[5], 2);
+			default:
+			messageBuffer1[0] = 0;
 			break;
+		}
+		break;
+		case 4:
+		messageNumber1[0] = hex2num(&messageBuffer1[3], 2);
+		if (messageType1 == BOOTLOADER_HEX_MESSAGE_TYPE) {
+			messageLength1 += messageNumber1[0];
+		}
+		break;
+		case 6:
+		messageNumber1[1] = hex2num(&messageBuffer1[5], 2);
+		break;
 	}
 	if (messageBuffer1[0] > 1 && messageBuffer1[0] == messageLength1) {
 		messageBuffer1[0] = 0;
@@ -207,5 +207,5 @@ void initCommunication() {
 	messageBuffer1[0] = 0;
 	uart1_init(UART_BAUD_SELECT(UART_BAUD_RATE, F_CPU));
 	RS485_INIT;
-	UCSR1B |= (1 << TXCIE1);
+	//UCSR1B |= (1 << TXCIE1);
 }

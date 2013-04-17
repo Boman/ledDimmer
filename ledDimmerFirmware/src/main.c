@@ -20,6 +20,10 @@ volatile uint8_t nextCentiSecond = 0;
 volatile uint16_t irmpLastKeyPressCounter = 0;
 #endif
 
+#ifdef MASTER
+volatile uint16_t rs485Timer = 0;
+#endif
+
 // Timer 1 output compare A interrupt service routine, called every 1/15000 sec
 ISR( TIMER1_COMPA_vect) {
 	// Implementiere die ISR ohne zunaechst weitere IRQs zuzulassen
@@ -29,6 +33,10 @@ ISR( TIMER1_COMPA_vect) {
 
 #ifdef IR_DEVICE
 	(void) irmp_ISR(); // call irmp ISR
+#endif
+
+#ifdef MASTER
+	rs485Timer++;
 #endif
 
 	if (timerCounter++ >= INTERRUPTS_COUNT) {
@@ -55,36 +63,37 @@ void timer1_init(void) {
 }
 
 void lightCommand(int8_t rVal, int8_t gVal, int8_t bVal) {
-//	uart_puts("ls");
-//	uart_putc(num2hex((LIGHT_ALL_R & 0xF0) >> 4));
-//	uart_putc(num2hex(LIGHT_ALL_R & 0x0F));
-//	uart_putc(num2hex((rVal & 0xF0) >> 4));
-//	uart_putc(num2hex(rVal & 0x0F));
-//	uart1_puts("ls");
-//	RS485_SEND;
-//	uart1_putc(num2hex((LIGHT_ALL_R & 0xF0) >> 4));
-//	uart1_putc(num2hex(LIGHT_ALL_R & 0x0F));
-//	uart1_putc(num2hex((rVal & 0xF0) >> 4));
-//	uart1_putc(num2hex(rVal & 0x0F));
-//	setLightValue(LIGHT_ALL_R, rVal);
-//
-//	uart_puts("ls");
-//	uart_putc(num2hex((LIGHT_ALL_G & 0xF0) >> 4));
-//	uart_putc(num2hex(LIGHT_ALL_G & 0x0F));
-//	uart_putc(num2hex((gVal & 0xF0) >> 4));
-//	uart_putc(num2hex(gVal & 0x0F));
-//	setLightValue(LIGHT_ALL_G, gVal);
-//
-//	uart_puts("ls");
-//	uart_putc(num2hex((LIGHT_ALL_B & 0xF0) >> 4));
-//	uart_putc(num2hex(LIGHT_ALL_B & 0x0F));
-//	uart_putc(num2hex((bVal & 0xF0) >> 4));
-//	uart_putc(num2hex(bVal & 0x0F));
-//	setLightValue(LIGHT_ALL_B, bVal);
+#ifdef MASTER
+	RS485_SEND;
+	uart1_puts("ls32");
+	uart1_putc(num2hex((rVal & 0xF0) >> 4));
+	uart1_putc(num2hex(rVal & 0x0F));
+	uart1_puts("ls33");
+	uart1_putc(num2hex((gVal & 0xF0) >> 4));
+	uart1_putc(num2hex(gVal & 0x0F));
+	uart1_puts("ls34");
+	uart1_putc(num2hex((bVal & 0xF0) >> 4));
+	uart1_putc(num2hex(bVal & 0x0F));
+#endif
+	deactivateUpdatePWM = 1;
+	setLightValue(3, LIGHT_RED, rVal);
+	deactivateUpdatePWM = 1;
+	setLightValue(3, LIGHT_GREEN, gVal);
+	setLightValue(3, LIGHT_BLUE, bVal);
+}
 
-	setLightValue(3, LIGHT_R, rVal);
-	setLightValue(3, LIGHT_G, gVal);
-	setLightValue(3, LIGHT_B, bVal);
+uint8_t min(uint8_t a, uint8_t b) {
+	if (a < b) {
+		return a;
+	}
+	return b;
+}
+
+uint8_t max(uint8_t a, uint8_t b) {
+	if (a > b) {
+		return a;
+	}
+	return b;
 }
 
 int16_t main() {
@@ -95,6 +104,7 @@ int16_t main() {
 #ifdef IR_DEVICE
 	uint8_t irmpEvent = 0;
 	uint16_t irmpSameKeyPressCounter = 0;
+	uint16_t irmpSameKeyPressProcessedCounter = 0;
 	uint8_t irmpLastKey = 0;
 	uint8_t irmpNewKey = 0;
 	uint8_t lastRGBBrightness = 0;
@@ -127,15 +137,13 @@ int16_t main() {
 				}
 				break;
 			case LIGHT_SET_MESSAGE_TYPE:
-				//TODO setLightValue(messageNumber0[0], messageNumber0[1]);
-				uart_puts("Set Light");
+				setLightValue((messageNumber0[0] & 0xF0) >> 4, messageNumber0[0] & 0x0F, messageNumber0[1]);
 				RS485_SEND;
-				uart1_putc('l');
-				uart1_putc('s');
-				uart1_putc(num2hex(messageNumber0[0] >> 4));
-				uart1_putc(num2hex(messageNumber0[0] && 0x0F));
-				uart1_putc(num2hex(messageNumber0[1] >> 4));
-				uart1_putc(num2hex(messageNumber0[1] && 0x0F));
+				uart1_puts("ls");
+				uart1_putc(num2hex((messageNumber0[0] & 0xF0) >> 4));
+				uart1_putc(num2hex(messageNumber0[0] & 0x0F));
+				uart1_putc(num2hex((messageNumber0[1] & 0xF0) >> 4));
+				uart1_putc(num2hex(messageNumber0[1] & 0x0F));
 				break;
 			}
 #endif
@@ -163,7 +171,7 @@ int16_t main() {
 				}
 				break;
 				case LIGHT_SET_MESSAGE_TYPE:
-				setLightValue(messageNumber1[0], messageNumber1[1]);
+				setLightValue((messageNumber1[0] & 0xF0) >> 4, messageNumber1[0] & 0x0F, messageNumber1[1]);
 				break;
 			}
 #endif
@@ -206,29 +214,23 @@ int16_t main() {
 		if ((irmpEvent == 2 || irmpEvent == 4) && irmpNewKey != 0 && irmpLastKey == irmpNewKey) {
 			irmpSameKeyPressCounter += irmpLastKeyPressCounter;
 			irmpLastKeyPressCounter = 0;
-			if (irmpSameKeyPressCounter > 100) {
+			if (irmpEvent == 2 && irmpSameKeyPressCounter > 50) {
 				irmpEvent = 4;
+				irmpSameKeyPressProcessedCounter = irmpSameKeyPressCounter;
 			}
 		}
 
+		// turn on the light if some key was pressed
+		if (irmpEvent != 0 && irmpEvent != 2 && irmpLastKey != IR_ON_OFF && lastRGBBrightness != 0) {
+			deactivateUpdatePWM = 1;
+			setLightValue(3, LIGHT_RGB_BRIGHTNESS, lastRGBBrightness);
+			lastRGBBrightness = 0;
+		}
+
 		switch (irmpEvent) {
+		// key push event
 		case 1:
 			switch (irmpLastKey) {
-			case IR_RGB_BRIGHTER:
-				tmpValue = getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS);
-				if (tmpValue < 255 - 16) {
-					tmpValue += 16;
-				}
-				setLightValue(3, LIGHT_RGB_BRIGHTNESS, tmpValue);
-				break;
-			case IR_RGB_DARKER:
-				tmpValue = getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS);
-				if (tmpValue >= 16) {
-					tmpValue -= 16;
-				}
-				setLightValue(3, LIGHT_RGB_BRIGHTNESS, tmpValue);
-				break;
-
 			case IR_ON_OFF:
 				tmpValue = getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS);
 				setLightValue(3, LIGHT_RGB_BRIGHTNESS, lastRGBBrightness);
@@ -297,6 +299,13 @@ int16_t main() {
 				lightCommand(255, 255, 255);
 				break;
 
+			case IR_QUICKER:
+				setLightValue(3, LIGHT_SPEED, min(255 - 1, getLightValue(Device_ID - 1, LIGHT_SPEED)) + 1);
+				break;
+			case IR_SLOWER:
+				setLightValue(3, LIGHT_SPEED, max(1, getLightValue(Device_ID - 1, LIGHT_SPEED)) - 1);
+				break;
+
 			case IR_DIY3:
 				break;
 			case IR_DIY4:
@@ -307,27 +316,55 @@ int16_t main() {
 				break;
 
 			case IR_AUTO:
-				//TODO setLightValue(LIGHT_ALL_PROGRAM, 1);
+				setLightValue(3, LIGHT_PROGRAM, 1 + LED_NUM_EXTRA_PROGRAMS);
 				break;
 			case IR_FLASH:
-				lightCommand(255, 255, 255);
+				setLightValue(3, LIGHT_PROGRAM, 2 + LED_NUM_EXTRA_PROGRAMS);
 				break;
 			case IR_JUMP3:
-				lightCommand(255, 255, 255);
+				setLightValue(3, LIGHT_PROGRAM, 3 + LED_NUM_EXTRA_PROGRAMS);
 				break;
 			case IR_JUMP7:
-				lightCommand(255, 255, 255);
+				setLightValue(3, LIGHT_PROGRAM, 4 + LED_NUM_EXTRA_PROGRAMS);
 				break;
 			case IR_FADE3:
-				lightCommand(255, 255, 255);
+				setLightValue(3, LIGHT_PROGRAM, 5 + LED_NUM_EXTRA_PROGRAMS);
 				break;
 			case IR_FADE7:
-				lightCommand(255, 255, 255);
+				setLightValue(3, LIGHT_PROGRAM, 6 + LED_NUM_EXTRA_PROGRAMS);
 				break;
 
 			}
 			break;
-		default:
+
+			// key up event (fired 200 ms after keypress)
+		case 3:
+			switch (irmpLastKey) {
+			case IR_RGB_BRIGHTER:
+				setLightValue(3, LIGHT_RGB_BRIGHTNESS, min(255 - 16, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) + 16);
+				break;
+			case IR_RGB_DARKER:
+				setLightValue(3, LIGHT_RGB_BRIGHTNESS, max(16, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) - 16);
+				break;
+			}
+			break;
+
+			// key hold event
+		case 4:
+			tmpValue = irmpSameKeyPressCounter - irmpSameKeyPressProcessedCounter;
+			if (tmpValue >= 3) {
+				tmpValue /= 3;
+				irmpSameKeyPressProcessedCounter += tmpValue * 3;
+
+				switch (irmpLastKey) {
+				case IR_RGB_BRIGHTER:
+					setLightValue(3, LIGHT_RGB_BRIGHTNESS, min(255 - tmpValue, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) + tmpValue);
+					break;
+				case IR_RGB_DARKER:
+					setLightValue(3, LIGHT_RGB_BRIGHTNESS, max(tmpValue, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) - tmpValue);
+					break;
+				}
+			}
 			break;
 		}
 
