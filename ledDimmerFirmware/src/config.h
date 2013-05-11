@@ -24,6 +24,9 @@
 #define F_INTERRUPTS					15000
 #define INTERRUPTS_COUNT		 (F_INTERRUPTS / 100)
 
+#define LED1_ADRESS					1
+#define LED2_ADRESS					0
+
 #define IR_ADRESS						 0xFF00
 
 // Command Codes from the IR-Remote-Control

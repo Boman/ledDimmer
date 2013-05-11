@@ -9,14 +9,14 @@
 
 LED_STATE ledStates[2] = { { 0, // ledBrightness
 		255, // rgbBrightness
-		LED_NUM_EXTRA_PROGRAMS, // rgbProgram
+		1, // rgbProgram
 		START_SPEED, // rgbProgramSpeed
 		0, // rValue
 		0, // gValue
 		0 // bValue
 		}, { 0, // ledBrightness
 				255, // rgbBrightness
-				LED_NUM_EXTRA_PROGRAMS, // rgbProgram
+				1, // rgbProgram
 				START_SPEED, // rgbProgramSpeed
 				0, // rValue
 				0, // gValue
@@ -24,11 +24,11 @@ LED_STATE ledStates[2] = { { 0, // ledBrightness
 		} };
 
 // time to the next update of the rgbProgram
-uint16_t nextUpdateRGBProgramCall = 1;
+volatile uint16_t nextUpdateRGBProgramCall = 1;
 // set this variable and then call updateRGBProgram()
-uint8_t rgbSpeedOld = START_SPEED;
+volatile uint8_t rgbSpeedOld = START_SPEED;
 // the actual position in the rgb program
-uint8_t rgbProgramProgress = 0;
+volatile uint8_t rgbProgramProgress = 0;
 
 #define C_WHITE					255, 255, 255
 #define C_BLACK					0, 0, 0
@@ -45,7 +45,7 @@ const uint8_t rgbProgramOffsets[LED_NUM_PROGRAMS + 1] PROGMEM = { 0, // startup 
 		30, // fade7
 		37 };
 
-const uint8_t rgbProgram[]PROGMEM = { C_WHITE, // startup program
+const uint8_t rgbProgram[] PROGMEM = { C_WHITE, // startup program
 		C_WHITE, C_BLACK, // auto program
 		C_WHITE, C_WHITE, C_BLACK, C_BLACK, // flash program
 		C_RED, C_RED, C_GREEN, C_GREEN, C_BLUE, C_BLUE, // jump3
@@ -56,14 +56,15 @@ const uint8_t rgbProgram[]PROGMEM = { C_WHITE, // startup program
 
 const uint16_t rgbProgramTimes[] PROGMEM = { 100, // startup program
 		100, 100, // auto program
-		1, 100, 1, 100, // flash program
-		1, 100, 1, 100, 1, 100, // jump3
-		1, 100, 1, 100, 1, 100, 1, 100, 1, 100, 1, 100, 1, 100, // jump7
+		0, 100, 0, 100, // flash program
+		0, 100, 0, 100, 0, 100, // jump3
+		0, 100, 0, 100, 0, 100, 0, 100, 0, 100, 0, 100, 0, 100, // jump7
 		100, 100, 100, // fade3
 		100, 100, 100, 100, 100, 100, 100 // fade7
 		};
 
 volatile uint8_t deactivateUpdatePWM = 0;
+volatile uint8_t programReady = 0;
 
 // pwm_update() needs to be called if values other than program and speed were changed
 void setLightValue(uint8_t lightIDMask, uint8_t light, uint8_t value) {
@@ -99,16 +100,20 @@ void setLightValue(uint8_t lightIDMask, uint8_t light, uint8_t value) {
 			case LIGHT_RGB_BRIGHTNESS:
 				ledStates[i].rgbBrightness = value;
 				if (Device_ID - 1 == i) {
-					setPWM( LED_R, (uint16_t)(ledStates[i].valueR) *ledStates[i].rgbBrightness / 256);
-					setPWM( LED_G, (uint16_t)(ledStates[i].valueG) *ledStates[i].rgbBrightness / 256);
-					setPWM( LED_B, (uint16_t)(ledStates[i].valueB) *ledStates[i].rgbBrightness / 256);
-					updatePWM = 1;
+					if (ledStates[Device_ID - 1].rgbProgram == 0) {
+						setPWM( LED_R, (uint16_t)(ledStates[i].valueR) *ledStates[i].rgbBrightness / 256);
+						setPWM( LED_G, (uint16_t)(ledStates[i].valueG) *ledStates[i].rgbBrightness / 256);
+						setPWM( LED_B, (uint16_t)(ledStates[i].valueB) *ledStates[i].rgbBrightness / 256);
+						updatePWM = 1;
+					} else {
+						ledStateCallback(0);
+					}
 				}
 				break;
 			case LIGHT_PROGRAM:
 				ledStates[i].rgbProgram = value;
 				if (Device_ID - 1 == i) {
-					rgbProgramProgress = pgm_read_word(&rgbProgramOffsets[ledStates[Device_ID - 1].rgbProgram - LED_NUM_EXTRA_PROGRAMS + 1] - 1);
+					rgbProgramProgress = pgm_read_word(&rgbProgramOffsets[ledStates[Device_ID - 1].rgbProgram] ) - 1;
 					nextStepRGBProgram();
 				}
 				break;
@@ -119,7 +124,9 @@ void setLightValue(uint8_t lightIDMask, uint8_t light, uint8_t value) {
 				}
 				break;
 			case LIGHT_LED_BRIGHTNESS:
+				ledStates[i].ledBrightness = value;
 				if (Device_ID - 1 == i) {
+					//TODO
 				}
 				break;
 			}
@@ -166,13 +173,13 @@ int16_t errB;
 uint8_t deltaB;
 
 // the callback method called 100 times per second
-void ledStateCallback() {
-	if (--nextUpdateRGBProgramCall == 0) {
+void ledStateCallback(uint8_t reduceCounter) {
+	if (reduceCounter && --nextUpdateRGBProgramCall == 0) {
 		// the next program step needs to be executed
 		nextStepRGBProgram();
 	}
 
-	if (ledStates[Device_ID - 1].rgbProgram >= LED_NUM_EXTRA_PROGRAMS) { // do not update if no program chosen
+	if (ledStates[Device_ID - 1].rgbProgram > 0) { // do not update if no program chosen
 		uint8_t pwmChanged = 0; // notice if pwm needs to be updated
 
 		//bresenham
@@ -215,8 +222,9 @@ void nextStepRGBProgram() {
 	}
 
 	++rgbProgramProgress;
-	if (rgbProgramProgress >= pgm_read_word(&rgbProgramOffsets[ledStates[Device_ID - 1].rgbProgram - LED_NUM_EXTRA_PROGRAMS + 1])) {
-		rgbProgramProgress = pgm_read_word(&rgbProgramOffsets[ledStates[Device_ID - 1].rgbProgram - LED_NUM_EXTRA_PROGRAMS]);
+	if (rgbProgramProgress >= (uint8_t) pgm_read_word(&rgbProgramOffsets[ledStates[Device_ID - 1].rgbProgram])) {
+		programReady = 1;
+		rgbProgramProgress = pgm_read_word(&rgbProgramOffsets[ledStates[Device_ID - 1].rgbProgram - 1]);
 	}
 	nextUpdateRGBProgramCall = pgm_read_word(&rgbProgramTimes[rgbProgramProgress] ) * pgm_read_word(&speedSteps[ledStates[Device_ID - 1].rgbSpeed]) / 256;
 
@@ -225,9 +233,22 @@ void nextStepRGBProgram() {
 
 // calculates the values for bresenham after new program step or speedchange
 void updateRGBProgram() {
+	// if the program step has a time of 0
+	if (nextUpdateRGBProgramCall == 0) {
+		ledStates[Device_ID - 1].valueR = (uint8_t) pgm_read_word(& rgbProgram[3 * rgbProgramProgress]);
+		ledStates[Device_ID - 1].valueG = (uint8_t) pgm_read_word(& rgbProgram[3 * rgbProgramProgress+1]);
+		ledStates[Device_ID - 1].valueB = (uint8_t) pgm_read_word(& rgbProgram[3 * rgbProgramProgress+2]);
+		setPWM( LED_R, (uint16_t)(ledStates[Device_ID - 1].valueR)*ledStates [Device_ID - 1].rgbBrightness / 256);
+		setPWM( LED_G, (uint16_t)(ledStates[Device_ID - 1].valueG) *ledStates[Device_ID - 1].rgbBrightness / 256);
+		setPWM( LED_B, (uint16_t)(ledStates[Device_ID - 1].valueB) *ledStates[Device_ID - 1].rgbBrightness / 256);
+		pwm_update();
+		nextStepRGBProgram();
+		return;
+	}
+
 	if (ledStates[Device_ID - 1].rgbSpeed != rgbSpeedOld) {
-		nextUpdateRGBProgramCall *= pgm_read_word(&speedSteps[ledStates[Device_ID - 1].rgbSpeed]);
-		nextUpdateRGBProgramCall /= pgm_read_word(&speedSteps[rgbSpeedOld]);
+		nextUpdateRGBProgramCall *= (uint8_t) pgm_read_word(&speedSteps[ledStates[Device_ID - 1].rgbSpeed]);
+		nextUpdateRGBProgramCall /= (uint8_t) pgm_read_word(&speedSteps[rgbSpeedOld]);
 		rgbSpeedOld = ledStates[Device_ID - 1].rgbSpeed;
 	}
 	deltaT = -nextUpdateRGBProgramCall;

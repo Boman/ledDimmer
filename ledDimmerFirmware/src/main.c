@@ -62,24 +62,35 @@ void timer1_init(void) {
 	TIMSK1 = 1 << OCIE1A; // OCIE1A: Interrupt by timer compare
 }
 
-void lightCommand(int8_t rVal, int8_t gVal, int8_t bVal) {
-#ifdef MASTER
+void lightCommand(int8_t adressMask, int8_t lightType, int8_t value) {
 	RS485_SEND;
-	uart1_puts("ls32");
-	uart1_putc(num2hex((rVal & 0xF0) >> 4));
-	uart1_putc(num2hex(rVal & 0x0F));
-	uart1_puts("ls33");
-	uart1_putc(num2hex((gVal & 0xF0) >> 4));
-	uart1_putc(num2hex(gVal & 0x0F));
-	uart1_puts("ls34");
-	uart1_putc(num2hex((bVal & 0xF0) >> 4));
-	uart1_putc(num2hex(bVal & 0x0F));
+	uart1_puts("ls");
+	uart1_putc(num2hex(adressMask));
+	uart1_putc(num2hex(lightType));
+	uart1_putc(num2hex((value & 0xF0) >> 4));
+	uart1_putc(num2hex(value & 0x0F));
+#ifdef MASTER
+	uart_puts("ls");
+	uart_putc(num2hex(adressMask));
+	uart_putc(num2hex(lightType));
+	uart_putc(num2hex((value & 0xF0) >> 4));
+	uart_putc(num2hex(value & 0x0F));
 #endif
+	setLightValue(adressMask, lightType, value);
+}
+
+#ifdef MASTER
+void rgbCommand(int8_t rVal, int8_t gVal, int8_t bVal) {
 	deactivateUpdatePWM = 1;
-	setLightValue(3, LIGHT_RED, rVal);
+	lightCommand(3, LIGHT_RED, rVal);
 	deactivateUpdatePWM = 1;
-	setLightValue(3, LIGHT_GREEN, gVal);
-	setLightValue(3, LIGHT_BLUE, bVal);
+	lightCommand(3, LIGHT_GREEN, gVal);
+	lightCommand(3, LIGHT_BLUE, bVal);
+}
+#endif
+
+void onProgramCompletion() {
+
 }
 
 uint8_t min(uint8_t a, uint8_t b) {
@@ -123,7 +134,7 @@ int16_t main() {
 	sei();
 
 	while (1) {
-		//process UART0 Input
+		// process UART0 Input
 		c = uart_getc();
 		if (!(c & UART_NO_DATA)) {
 #ifdef MASTER
@@ -137,13 +148,13 @@ int16_t main() {
 				}
 				break;
 			case LIGHT_SET_MESSAGE_TYPE:
-				setLightValue((messageNumber0[0] & 0xF0) >> 4, messageNumber0[0] & 0x0F, messageNumber0[1]);
 				RS485_SEND;
 				uart1_puts("ls");
 				uart1_putc(num2hex((messageNumber0[0] & 0xF0) >> 4));
 				uart1_putc(num2hex(messageNumber0[0] & 0x0F));
 				uart1_putc(num2hex((messageNumber0[1] & 0xF0) >> 4));
 				uart1_putc(num2hex(messageNumber0[1] & 0x0F));
+				setLightValue((messageNumber0[0] & 0xF0) >> 4, messageNumber0[0] & 0x0F, messageNumber0[1]);
 				break;
 			}
 #endif
@@ -151,7 +162,7 @@ int16_t main() {
 #endif
 		}
 
-		//process UART1 Input
+		// process UART1 Input
 		c = uart1_getc();
 		if (!(c & UART_NO_DATA)) {
 			uint8_t t = decodeMessage1((uint8_t) c);
@@ -223,7 +234,7 @@ int16_t main() {
 		// turn on the light if some key was pressed
 		if (irmpEvent != 0 && irmpEvent != 2 && irmpLastKey != IR_ON_OFF && lastRGBBrightness != 0) {
 			deactivateUpdatePWM = 1;
-			setLightValue(3, LIGHT_RGB_BRIGHTNESS, lastRGBBrightness);
+			lightCommand(3, LIGHT_RGB_BRIGHTNESS, lastRGBBrightness);
 			lastRGBBrightness = 0;
 		}
 
@@ -233,77 +244,77 @@ int16_t main() {
 			switch (irmpLastKey) {
 			case IR_ON_OFF:
 				tmpValue = getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS);
-				setLightValue(3, LIGHT_RGB_BRIGHTNESS, lastRGBBrightness);
+				lightCommand(3, LIGHT_RGB_BRIGHTNESS, lastRGBBrightness);
 				lastRGBBrightness = tmpValue;
 				break;
 
 				// color buttons
 			case IR_COLOR_RED:
-				lightCommand(255, 0, 0);
+				rgbCommand(255, 0, 0);
 				break;
 			case IR_COLOR_GREEN:
-				lightCommand(0, 255, 0);
+				rgbCommand(0, 255, 0);
 				break;
 			case IR_COLOR_BLUE:
-				lightCommand(0, 0, 255);
+				rgbCommand(0, 0, 255);
 				break;
 			case IR_COLOR_WHITE:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_DARK_RED:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_DARK_GREEN:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_DARK_BLUE:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_LIGHT_PINK:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_ORANGE:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_CYAN:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_MIDNIGHT_BLUE:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_PINK:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_LIGHT_YELLOW:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_JUNGLE_GREEN:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_VIOLET:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_SKY_BLUE:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_YELLOW:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_COBALT:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_MAGENTA:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 			case IR_COLOR_LIGHT_BLUE:
-				lightCommand(255, 255, 255);
+				rgbCommand(255, 255, 255);
 				break;
 
 			case IR_QUICKER:
-				setLightValue(3, LIGHT_SPEED, min(255 - 1, getLightValue(Device_ID - 1, LIGHT_SPEED)) + 1);
+				lightCommand(3, LIGHT_SPEED, min(SPEED_STEPS - 1, getLightValue(Device_ID - 1, LIGHT_SPEED)) + 1);
 				break;
 			case IR_SLOWER:
-				setLightValue(3, LIGHT_SPEED, max(1, getLightValue(Device_ID - 1, LIGHT_SPEED)) - 1);
+				lightCommand(3, LIGHT_SPEED, max(1, getLightValue(Device_ID - 1, LIGHT_SPEED)) - 1);
 				break;
 
 			case IR_DIY3:
@@ -316,22 +327,22 @@ int16_t main() {
 				break;
 
 			case IR_AUTO:
-				setLightValue(3, LIGHT_PROGRAM, 1 + LED_NUM_EXTRA_PROGRAMS);
+				lightCommand(3, LIGHT_PROGRAM, 2);
 				break;
 			case IR_FLASH:
-				setLightValue(3, LIGHT_PROGRAM, 2 + LED_NUM_EXTRA_PROGRAMS);
+				lightCommand(3, LIGHT_PROGRAM, 3);
 				break;
 			case IR_JUMP3:
-				setLightValue(3, LIGHT_PROGRAM, 3 + LED_NUM_EXTRA_PROGRAMS);
+				lightCommand(3, LIGHT_PROGRAM, 4);
 				break;
 			case IR_JUMP7:
-				setLightValue(3, LIGHT_PROGRAM, 4 + LED_NUM_EXTRA_PROGRAMS);
+				lightCommand(3, LIGHT_PROGRAM, 5);
 				break;
 			case IR_FADE3:
-				setLightValue(3, LIGHT_PROGRAM, 5 + LED_NUM_EXTRA_PROGRAMS);
+				lightCommand(3, LIGHT_PROGRAM, 6);
 				break;
 			case IR_FADE7:
-				setLightValue(3, LIGHT_PROGRAM, 6 + LED_NUM_EXTRA_PROGRAMS);
+				lightCommand(3, LIGHT_PROGRAM, 7);
 				break;
 
 			}
@@ -341,10 +352,44 @@ int16_t main() {
 		case 3:
 			switch (irmpLastKey) {
 			case IR_RGB_BRIGHTER:
-				setLightValue(3, LIGHT_RGB_BRIGHTNESS, min(255 - 16, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) + 16);
+				lightCommand(3, LIGHT_RGB_BRIGHTNESS, min(255 - 16, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) + 16);
 				break;
 			case IR_RGB_DARKER:
-				setLightValue(3, LIGHT_RGB_BRIGHTNESS, max(16, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) - 16);
+				lightCommand(3, LIGHT_RGB_BRIGHTNESS, max(16, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) - 16);
+				break;
+
+			case IR_RED_BRIGHTER:
+				lightCommand(3, LIGHT_RED, min(255 - 16, getLightValue(Device_ID - 1, LIGHT_RED)) + 16);
+				break;
+			case IR_RED_DARKER:
+				lightCommand(3, LIGHT_RED, max(16, getLightValue(Device_ID - 1, LIGHT_RED)) - 16);
+				break;
+			case IR_GREEN_BRIGHTER:
+				lightCommand(3, LIGHT_GREEN, min(255 - 16, getLightValue(Device_ID - 1, LIGHT_GREEN)) + 16);
+				break;
+			case IR_GREEN_DARKER:
+				lightCommand(3, LIGHT_GREEN, max(16, getLightValue(Device_ID - 1, LIGHT_GREEN)) - 16);
+				break;
+			case IR_BLUE_BRIGHTER:
+				lightCommand(3, LIGHT_BLUE, min(255 - 16, getLightValue(Device_ID - 1, LIGHT_BLUE)) + 16);
+				break;
+			case IR_BLUE_DARKER:
+				lightCommand(3, LIGHT_BLUE, max(16, getLightValue(Device_ID - 1, LIGHT_BLUE)) - 16);
+				break;
+
+			case IR_DIY1:
+				if (getLightValue(LED1_ADRESS, LIGHT_LED_BRIGHTNESS) > 127) {
+					lightCommand(1 << LED1_ADRESS, LIGHT_LED_BRIGHTNESS, 0);
+				} else {
+					lightCommand(1 << LED1_ADRESS, LIGHT_LED_BRIGHTNESS, 255);
+				}
+				break;
+			case IR_DIY2:
+				if (getLightValue(LED2_ADRESS, LIGHT_LED_BRIGHTNESS) > 127) {
+					lightCommand(1 << LED2_ADRESS, LIGHT_LED_BRIGHTNESS, 0);
+				} else {
+					lightCommand(1 << LED2_ADRESS, LIGHT_LED_BRIGHTNESS, 255);
+				}
 				break;
 			}
 			break;
@@ -352,16 +397,51 @@ int16_t main() {
 			// key hold event
 		case 4:
 			tmpValue = irmpSameKeyPressCounter - irmpSameKeyPressProcessedCounter;
-			if (tmpValue >= 3) {
-				tmpValue /= 3;
-				irmpSameKeyPressProcessedCounter += tmpValue * 3;
+			if (tmpValue >= 2) {
+				tmpValue /= 2;
+				irmpSameKeyPressProcessedCounter += tmpValue * 2;
 
 				switch (irmpLastKey) {
 				case IR_RGB_BRIGHTER:
-					setLightValue(3, LIGHT_RGB_BRIGHTNESS, min(255 - tmpValue, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) + tmpValue);
+					lightCommand(3, LIGHT_RGB_BRIGHTNESS, min(255 - tmpValue, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) + tmpValue);
 					break;
 				case IR_RGB_DARKER:
-					setLightValue(3, LIGHT_RGB_BRIGHTNESS, max(tmpValue, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) - tmpValue);
+					lightCommand(3, LIGHT_RGB_BRIGHTNESS, max(tmpValue, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) - tmpValue);
+					break;
+
+				case IR_RED_BRIGHTER:
+					lightCommand(3, LIGHT_RED, min(255 - tmpValue, getLightValue(Device_ID - 1, LIGHT_RED)) + tmpValue);
+					break;
+				case IR_RED_DARKER:
+					lightCommand(3, LIGHT_RED, max(tmpValue, getLightValue(Device_ID - 1, LIGHT_RED)) - tmpValue);
+					break;
+				case IR_GREEN_BRIGHTER:
+					lightCommand(3, LIGHT_GREEN, min(255 - tmpValue, getLightValue(Device_ID - 1, LIGHT_GREEN)) + tmpValue);
+					break;
+				case IR_GREEN_DARKER:
+					lightCommand(3, LIGHT_GREEN, max(tmpValue, getLightValue(Device_ID - 1, LIGHT_GREEN)) - tmpValue);
+					break;
+				case IR_BLUE_BRIGHTER:
+					lightCommand(3, LIGHT_BLUE, min(255 - tmpValue, getLightValue(Device_ID - 1, LIGHT_BLUE)) + tmpValue);
+					break;
+				case IR_BLUE_DARKER:
+					lightCommand(3, LIGHT_BLUE, max(tmpValue, getLightValue(Device_ID - 1, LIGHT_BLUE)) - tmpValue);
+					break;
+
+					//TODO nicht so einfach, da der wert bei 127 hängen bleibt, Hilfe: Zustandsvariablen (hoch/runter) mit timeout
+				case IR_DIY1:
+					if (getLightValue(LED1_ADRESS, LIGHT_LED_BRIGHTNESS) > 127) {
+						lightCommand(1 << LED1_ADRESS, LIGHT_LED_BRIGHTNESS, max(tmpValue, getLightValue(LED1_ADRESS, LIGHT_LED_BRIGHTNESS)) - tmpValue);
+					} else {
+						lightCommand(1 << LED1_ADRESS, LIGHT_LED_BRIGHTNESS, min(255 - tmpValue, getLightValue(LED1_ADRESS, LIGHT_LED_BRIGHTNESS)) + tmpValue);
+					}
+					break;
+				case IR_DIY2:
+					if (getLightValue(LED2_ADRESS, LIGHT_LED_BRIGHTNESS) > 127) {
+						lightCommand(1 << LED2_ADRESS, LIGHT_LED_BRIGHTNESS, max(tmpValue, getLightValue(LED2_ADRESS, LIGHT_LED_BRIGHTNESS)) - tmpValue);
+					} else {
+						lightCommand(1 << LED2_ADRESS, LIGHT_LED_BRIGHTNESS, min(255 - tmpValue, getLightValue(LED2_ADRESS, LIGHT_LED_BRIGHTNESS)) + tmpValue);
+					}
 					break;
 				}
 			}
@@ -374,7 +454,13 @@ int16_t main() {
 		if (nextCentiSecond) {
 			nextCentiSecond = 0;
 			centiSeconds++;
-			ledStateCallback();
+			ledStateCallback(1);
+			if (programReady) {
+				if (getLightValue(Device_ID - 1, LIGHT_PROGRAM) == 1) {
+					rgbCommand(255, 255, 255);
+				}
+				programReady = 0;
+			}
 //			if (centiSeconds % 512 == 1) {
 //				uart_puts("\ngithub.com/Boman/ledDimmer\n");
 //			}

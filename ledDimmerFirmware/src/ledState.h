@@ -35,18 +35,18 @@ typedef struct {
 } LED_STATE;
 
 extern volatile uint8_t deactivateUpdatePWM;
+extern volatile uint8_t programReady;
 
 void setLightValue(uint8_t lightIDMask, uint8_t light, uint8_t value);
 uint8_t getLightValue(uint8_t lightID, uint8_t light);
 
-#define LED_NUM_EXTRA_PROGRAMS			3
 #define LED_NUM_PROGRAMS						7
 //#define LED_PROGRAM_LENGTH					20
 
 #define SPEED_STEPS				20
 #define START_SPEED				(SPEED_STEPS / 2 - 2)
 
-void ledStateCallback();
+void ledStateCallback(uint8_t reduceCounter);
 void nextStepRGBProgram();
 void updateRGBProgram();
 
