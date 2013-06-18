@@ -4,10 +4,9 @@
 #include <avr/boot.h>
 #include <util/delay.h>
 #include "uart/uart.h"
+#include "communication.h"
 
-uint8_t decodeMessage(unsigned char c);
 void program_page(uint32_t page, uint8_t *buf);
-static uint16_t hex2num(const uint8_t * ascii, uint8_t num);
 void parse_hex_input(uint8_t c);
 int main();
 
@@ -17,51 +16,6 @@ int main();
 #define BOOTLOADER_START_MESSAGE_TYPE				0x01
 #define BOOTLOADER_HEX_MESSAGE_TYPE					0x02
 #define BOOTLOADER_ACK_MESSAGE_TYPE					0x03
-
-uint8_t messageBuffer[1 + 4 + 32];
-volatile uint8_t messageLength;
-volatile uint8_t messageType;
-volatile uint8_t messageNumber;
-
-uint8_t decodeMessage(uint8_t c) {
-	messageBuffer[0]++;
-	messageBuffer[messageBuffer[0]] = c;
-	switch (messageBuffer[0]) {
-	case 1:
-		if (messageBuffer[1] != 'b') {
-			messageBuffer[0] = 0;
-		}
-		break;
-	case 2:
-		if (messageBuffer[1] == 'b') {
-			if (messageBuffer[2] == 'h') {
-				messageType = BOOTLOADER_HEX_MESSAGE_TYPE;
-				messageLength = 4;
-			} else if (messageBuffer[2] == 's') {
-				messageType = BOOTLOADER_START_MESSAGE_TYPE;
-				messageLength = 4;
-			} else {
-				messageBuffer[0] = 0;
-			}
-		} else {
-			messageBuffer[0] = 0;
-		}
-		break;
-	case 4:
-		if (messageBuffer[1] == 'b') {
-			messageNumber = hex2num(&messageBuffer[3], 2);
-			if (messageBuffer[2] == 'h') {
-				messageLength += messageNumber;
-			}
-		}
-		break;
-	}
-	if (messageBuffer[0] > 1 && messageBuffer[0] == messageLength) {
-		messageBuffer[0] = 0;
-		return messageType;
-	}
-	return 0;
-}
 
 /* Zustände des Bootloader-Programms */
 #define BOOT_STATE_EXIT	        0
@@ -105,27 +59,6 @@ void program_page(uint32_t page, uint8_t *buf) {
 
 	/* Re-enable interrupts (if they were ever enabled). */
 	SREG = sreg;
-}
-
-static uint16_t hex2num(const uint8_t * ascii, uint8_t num) {
-	uint8_t i;
-	uint16_t val = 0;
-
-	for (i = 0; i < num; i++) {
-		uint8_t c = ascii[i];
-
-		/* Hex-Ziffer auf ihren Wert abbilden */
-		if (c >= '0' && c <= '9')
-			c -= '0';
-		else if (c >= 'A' && c <= 'F')
-			c -= 'A' - 10;
-		else if (c >= 'a' && c <= 'f')
-			c -= 'a' - 10;
-
-		val = 16 * val + c;
-	}
-
-	return val;
 }
 
 // boolean-defintion for software-flags
@@ -242,8 +175,8 @@ void parse_hex_input(uint8_t c) {
 				}
 				/* Puffer voll -> schreibe Page */
 				if (flash_cnt == SPM_PAGESIZE) {
-					uart_puts("P");
-					_delay_ms(100);
+					//uart_puts("P");
+					//_delay_ms(100);
 					program_page((uint16_t) flash_page, flash_data);
 					memset(flash_data, 0xFF, sizeof(flash_data));
 					flash_cnt = 0;
@@ -260,8 +193,8 @@ void parse_hex_input(uint8_t c) {
 				hex_check &= 0x00FF;
 				/* Dateiende -> schreibe Restdaten */
 				if (hex_type == 1) {
-					uart_puts("P");
-					_delay_ms(100);
+					//uart_puts("P");
+					//_delay_ms(100);
 					program_page((uint16_t) flash_page, flash_data);
 					boot_state = BOOT_STATE_EXIT;
 				}
@@ -274,7 +207,8 @@ void parse_hex_input(uint8_t c) {
 			break;
 			/* Parserfehler (falsche Checksumme) */
 		case PARSER_STATE_ERROR:
-			uart_putc('#');
+			//uart_putc('#');
+			LED_ON(LED_RED);
 			break;
 		default:
 			break;
@@ -289,7 +223,11 @@ int main() {
 	/* Funktionspointer auf 0x0000 */
 	void (*start)(void) = 0x0000;
 
-	messageBuffer[0] = 0;
+	LEDS_INIT;
+	LED_ON(LED_GREEN);
+
+	initCommunication();
+	RS485_RECEIVE;
 
 	/* Füllen der Puffer mit definierten Werten */
 	memset(hex_buffer, 0x00, sizeof(hex_buffer));
@@ -304,20 +242,28 @@ int main() {
 	uart_init(UART_BAUD_SELECT(BOOT_UART_BAUD_RATE,F_CPU));
 	sei();
 
-	uart_puts("bootloader");
-
 	do {
+#ifdef MASTER
 		c = uart_getc();
+#endif
+#ifdef SLAVE
+		c = uart1_getc();
+#endif
 		if (!(c & UART_NO_DATA)) {
 			switch (decodeMessage((uint8_t) c)) {
 			case BOOTLOADER_HEX_MESSAGE_TYPE:
-				for (uint8_t i = 5; i < 5 + messageNumber; ++i) {
-					parse_hex_input(messageBuffer[i]);
+				for (uint8_t i = 5; i < 5 + messageNumber0[0]; ++i) {
+					parse_hex_input(messageBuffer0[i]);
 				}
+#ifdef MASTER
 				uart_puts("ba");
+#endif
+#ifdef SLAVE
+				uart1_puts("ba");
+#endif
 				break;
 			case BOOTLOADER_START_MESSAGE_TYPE:
-				if (messageNumber == 0) {
+				if (messageNumber0[0] == 0) {
 					boot_state = BOOT_STATE_EXIT;
 				}
 				break;
@@ -325,7 +271,8 @@ int main() {
 		}
 	} while (boot_state != BOOT_STATE_EXIT);
 
-	uart_puts("reset AVR");
+	LED_ON(LED_BLUE);
+
 	_delay_ms(1000);
 
 	/* Interrupt Vektoren wieder gerade biegen */

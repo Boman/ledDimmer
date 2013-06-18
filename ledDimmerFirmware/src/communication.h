@@ -25,7 +25,9 @@
 #define BOOTLOADER_HEX_MESSAGE_TYPE					0x02
 #define BOOTLOADER_ACK_MESSAGE_TYPE					0x03
 
-#define LIGHT_SET_MESSAGE_TYPE								0x07
+#define INFO_ALIVE_MESSAGE_TYPE									0x05
+
+#define LIGHT_SET_MESSAGE_TYPE									0x07
 
 uint8_t num2hex(uint8_t num);
 uint16_t hex2num(const uint8_t * ascii, uint8_t num);
@@ -41,6 +43,12 @@ extern uint8_t messageLength1;
 extern uint8_t messageType1;
 extern uint8_t messageNumber1[2];
 uint8_t decodeMessage1(uint8_t c);
+
+#ifdef MASTER
+extern volatile uint16_t rs485Timer;
+#endif
+
+void rs485_wait_over();
 
 void initCommunication();
 

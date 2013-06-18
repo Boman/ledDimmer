@@ -179,6 +179,7 @@ extern void uart_puts_p(const char *s );
 extern void uart1_init(unsigned int baudrate);
 /** @brief  Get received byte of USART1 from ringbuffer. (only available on selected ATmega) @see uart_getc */
 extern unsigned int uart1_getc(void);
+extern void uart1_allow_send();
 /** @brief  Put byte to ringbuffer for transmitting via USART1 (only available on selected ATmega) @see uart_putc */
 extern void uart1_putc(unsigned char data);
 /** @brief  Put string to ringbuffer for transmitting via USART1 (only available on selected ATmega) @see uart_puts */

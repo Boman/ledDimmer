@@ -9,10 +9,10 @@
 #define CONFIG_H_
 
 #ifdef MASTER
-#define Device_ID 1
+#define DEVICE_ID 1
 #define IR_DEVICE
 #elif defined SLAVE
-#define  Device_ID 2
+#define  DEVICE_ID 2
 #else
 #error "choose Target MASTER or SLAVE"
 #endif
@@ -26,6 +26,13 @@
 
 #define LED1_ADRESS					1
 #define LED2_ADRESS					0
+
+#define LED_OUTPUT_DDR			DDRB
+#define LED_OUTPUT_PORT		PORTB
+#define LED_OUTPUT_PIN			PB5
+#define LED_OUTPUT_INIT			(LED_OUTPUT_DDR |= 1 << LED_OUTPUT_PIN)
+#define LED_OUTPUT_ON			(LED_OUTPUT_PORT |= 1 << LED_OUTPUT_PIN)
+#define LED_OUTPUT_OFF			(LED_OUTPUT_PORT &= ~(1 << LED_OUTPUT_PIN))
 
 #define IR_ADRESS						 0xFF00
 

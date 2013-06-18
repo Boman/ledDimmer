@@ -1,4 +1,5 @@
 from bluetooth import *
+from datetime import datetime
 import thread
 from time import sleep
 import re
@@ -17,15 +18,48 @@ class BluetoothManager:
     
     def registerListener(self, listener):
         self.listener.append(listener)
+        
+    def waitFor(self, message, timeout):
+        start = datetime.now()
+        self.receivedMessage = ""
+        while datetime.now() - start < timeout and self.receivedMessage != message:
+            pass
+        return self.receivedMessage == message
     
     def sendMessage(self, message):
         if message["event"] == "lightSet":
-            sending = "ls%01x%01x%02x"%(message["adressMask"], message["lightType"], message["value"])
+            sending = "ls%01x%01x%02x" % (message["adressMask"], message["lightType"], message["value"])
             print sending
             try:
                 self.connection.send(sending)
             except IOError:
                 pass
+        if message["event"] == "bootLoad":
+            sending = "bs%01x" % (message["adressMask"])
+            print sending
+            try:
+                self.connection.send(sending)
+            except IOError:
+                pass
+            if self.waitFor({"event" : "bootStart", "adressMask" : message["adressMask"]}, 60000):
+                content = message["hex"]
+                totalLength = len(content)
+                while len(content) > 0:
+                    tmp = content[:20]
+                    content = content[20:]
+                    hex1 = hex(len(tmp) / 16)[-1:]
+                    hex2 = hex(len(tmp) % 16)[-1:]
+                    sending = "bh%s%s%s" % (hex1, hex2, tmp)
+                    print sending
+                    try:
+                        self.connection.send(sending)
+                    except IOError:
+                        pass
+                    if not self.waitFor("ba", 60000):
+                        return
+                    for listener in self.listener:
+                        listener({'event' : 'bootProgress', 'progress' :100 - 100 * len(content) / totalLength})
+                    print "loaded %.2f percent" % (100 - 100.0 * len(content) / totalLength)
 
     def extractMessage(self):
         matchObj = re.match(r'(ls[0-9a-f]{4})(.*)', self.receiveBuffer, re.I)

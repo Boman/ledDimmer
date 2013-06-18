@@ -21,7 +21,7 @@ volatile uint16_t irmpLastKeyPressCounter = 0;
 #endif
 
 #ifdef MASTER
-volatile uint16_t rs485Timer = 0;
+uint8_t disablePollSlave = 0;
 #endif
 
 // Timer 1 output compare A interrupt service routine, called every 1/15000 sec
@@ -36,7 +36,12 @@ ISR( TIMER1_COMPA_vect) {
 #endif
 
 #ifdef MASTER
-	rs485Timer++;
+	if (rs485Timer) {
+		rs485Timer--;
+		if (rs485Timer == 0) {
+			rs485_wait_over();
+		}
+	}
 #endif
 
 	if (timerCounter++ >= INTERRUPTS_COUNT) {
@@ -63,7 +68,6 @@ void timer1_init(void) {
 }
 
 void lightCommand(int8_t adressMask, int8_t lightType, int8_t value) {
-	RS485_SEND;
 	uart1_puts("ls");
 	uart1_putc(num2hex(adressMask));
 	uart1_putc(num2hex(lightType));
@@ -79,7 +83,6 @@ void lightCommand(int8_t adressMask, int8_t lightType, int8_t value) {
 	setLightValue(adressMask, lightType, value);
 }
 
-#ifdef MASTER
 void rgbCommand(int8_t rVal, int8_t gVal, int8_t bVal) {
 	deactivateUpdatePWM = 1;
 	lightCommand(3, LIGHT_RED, rVal);
@@ -87,7 +90,6 @@ void rgbCommand(int8_t rVal, int8_t gVal, int8_t bVal) {
 	lightCommand(3, LIGHT_GREEN, gVal);
 	lightCommand(3, LIGHT_BLUE, bVal);
 }
-#endif
 
 void onProgramCompletion() {
 
@@ -130,6 +132,8 @@ int16_t main() {
 	timer1_init(); // initialize timer 1
 
 	initDimmer();
+	nextStepRGBProgram(0);
+	LED_OUTPUT_INIT;
 
 	sei();
 
@@ -141,14 +145,20 @@ int16_t main() {
 			uint8_t t = decodeMessage0((uint8_t) c);
 			switch (t) {
 			case BOOTLOADER_START_MESSAGE_TYPE:
-				if (messageNumber0[0] == 1) {
-					uart_puts("start Bootloader");
-					_delay_ms(1000);
+				if (messageNumber0[0] == DEVICE_ID) {
 					bootloader();
+				} else {
+					//TODO
+					disablePollSlave = 1;
+				}
+				break;
+			case BOOTLOADER_HEX_MESSAGE_TYPE:
+				uart1_puts("bh");
+				for (uint8_t i = 5; i < 5 + messageNumber0[0]; ++i) {
+					uart1_putc(messageBuffer0[i]);
 				}
 				break;
 			case LIGHT_SET_MESSAGE_TYPE:
-				RS485_SEND;
 				uart1_puts("ls");
 				uart1_putc(num2hex((messageNumber0[0] & 0xF0) >> 4));
 				uart1_putc(num2hex(messageNumber0[0] & 0x0F));
@@ -167,18 +177,36 @@ int16_t main() {
 		if (!(c & UART_NO_DATA)) {
 			uint8_t t = decodeMessage1((uint8_t) c);
 #ifdef MASTER
-			uart_putc('c');
-			uart_putc(c);
 			switch (t) {
+			case LIGHT_SET_MESSAGE_TYPE:
+				uart_puts("ls");
+				uart_putc(num2hex((messageNumber1[0] & 0xF0) >> 4));
+				uart_putc(num2hex(messageNumber1[0] & 0x0F));
+				uart_putc(num2hex((messageNumber1[1] & 0xF0) >> 4));
+				uart_putc(num2hex(messageNumber1[1] & 0x0F));
+				setLightValue((messageNumber1[0] & 0xF0) >> 4, messageNumber1[0] & 0x0F, messageNumber1[1]);
+				break;
+			case BOOTLOADER_ACK_MESSAGE_TYPE:
+				uart_puts("ba");
+				break;
 			}
 #endif
 #ifdef SLAVE
 			switch (t) {
 				case BOOTLOADER_START_MESSAGE_TYPE:
-				if (messageNumber1[0] == 2) {
-					uart_puts("start Bootloader");
-					_delay_ms(1000);
+				if (messageNumber1[0] == DEVICE_ID) {
 					bootloader();
+				}
+				break;
+				case INFO_ALIVE_MESSAGE_TYPE:
+				//TODO add the code for wall switch changement
+				if(slaveChanged != 0) {
+					uart1_puts("ls");
+					uart1_putc('0'+ (1 << (slaveChanged - 1)));
+					uart1_putc('6');
+					uart1_putc(num2hex((getLightValue(slaveChanged, LIGHT_LED_BRIGHTNESS) & 0xF0) >> 4));
+					uart1_putc(num2hex(getLightValue(slaveChanged, LIGHT_LED_BRIGHTNESS) & 0x0F));
+					slaveChanged = 0;
 				}
 				break;
 				case LIGHT_SET_MESSAGE_TYPE:
@@ -199,29 +227,25 @@ int16_t main() {
 			irmpNewKey = 0;
 		}
 
+		// FSM for the different key presses (short, long, etc.)
 		if (irmpEvent == 1) {
 			irmpEvent = 2;
 		}
-
 		if (irmpEvent == 3) {
 			irmpEvent = 0;
 		}
-
 		if (irmpEvent == 0 && irmpNewKey != 0) {
 			irmpEvent = 1; // a new key was pressed
 			irmpLastKey = irmpNewKey;
 			irmpLastKeyPressCounter = 0;
 			irmpSameKeyPressCounter = 0;
 		}
-
 		if (irmpEvent == 2 && irmpNewKey == 0 && irmpLastKeyPressCounter > 20) {
 			irmpEvent = 3;
 		}
-
 		if (irmpEvent == 4 && irmpNewKey == 0 && irmpLastKeyPressCounter > 20) {
 			irmpEvent = 0;
 		}
-
 		if ((irmpEvent == 2 || irmpEvent == 4) && irmpNewKey != 0 && irmpLastKey == irmpNewKey) {
 			irmpSameKeyPressCounter += irmpLastKeyPressCounter;
 			irmpLastKeyPressCounter = 0;
@@ -243,7 +267,7 @@ int16_t main() {
 		case 1:
 			switch (irmpLastKey) {
 			case IR_ON_OFF:
-				tmpValue = getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS);
+				tmpValue = getLightValue(DEVICE_ID - 1, LIGHT_RGB_BRIGHTNESS);
 				lightCommand(3, LIGHT_RGB_BRIGHTNESS, lastRGBBrightness);
 				lastRGBBrightness = tmpValue;
 				break;
@@ -311,10 +335,10 @@ int16_t main() {
 				break;
 
 			case IR_QUICKER:
-				lightCommand(3, LIGHT_SPEED, min(SPEED_STEPS - 1, getLightValue(Device_ID - 1, LIGHT_SPEED)) + 1);
+				lightCommand(3, LIGHT_SPEED, min(SPEED_STEPS - 1, getLightValue(DEVICE_ID - 1, LIGHT_SPEED)) + 1);
 				break;
 			case IR_SLOWER:
-				lightCommand(3, LIGHT_SPEED, max(1, getLightValue(Device_ID - 1, LIGHT_SPEED)) - 1);
+				lightCommand(3, LIGHT_SPEED, max(1, getLightValue(DEVICE_ID - 1, LIGHT_SPEED)) - 1);
 				break;
 
 			case IR_DIY3:
@@ -352,29 +376,29 @@ int16_t main() {
 		case 3:
 			switch (irmpLastKey) {
 			case IR_RGB_BRIGHTER:
-				lightCommand(3, LIGHT_RGB_BRIGHTNESS, min(255 - 16, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) + 16);
+				lightCommand(3, LIGHT_RGB_BRIGHTNESS, min(255 - 16, getLightValue(DEVICE_ID - 1, LIGHT_RGB_BRIGHTNESS)) + 16);
 				break;
 			case IR_RGB_DARKER:
-				lightCommand(3, LIGHT_RGB_BRIGHTNESS, max(16, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) - 16);
+				lightCommand(3, LIGHT_RGB_BRIGHTNESS, max(16, getLightValue(DEVICE_ID - 1, LIGHT_RGB_BRIGHTNESS)) - 16);
 				break;
 
 			case IR_RED_BRIGHTER:
-				lightCommand(3, LIGHT_RED, min(255 - 16, getLightValue(Device_ID - 1, LIGHT_RED)) + 16);
+				lightCommand(3, LIGHT_RED, min(255 - 16, getLightValue(DEVICE_ID - 1, LIGHT_RED)) + 16);
 				break;
 			case IR_RED_DARKER:
-				lightCommand(3, LIGHT_RED, max(16, getLightValue(Device_ID - 1, LIGHT_RED)) - 16);
+				lightCommand(3, LIGHT_RED, max(16, getLightValue(DEVICE_ID - 1, LIGHT_RED)) - 16);
 				break;
 			case IR_GREEN_BRIGHTER:
-				lightCommand(3, LIGHT_GREEN, min(255 - 16, getLightValue(Device_ID - 1, LIGHT_GREEN)) + 16);
+				lightCommand(3, LIGHT_GREEN, min(255 - 16, getLightValue(DEVICE_ID - 1, LIGHT_GREEN)) + 16);
 				break;
 			case IR_GREEN_DARKER:
-				lightCommand(3, LIGHT_GREEN, max(16, getLightValue(Device_ID - 1, LIGHT_GREEN)) - 16);
+				lightCommand(3, LIGHT_GREEN, max(16, getLightValue(DEVICE_ID - 1, LIGHT_GREEN)) - 16);
 				break;
 			case IR_BLUE_BRIGHTER:
-				lightCommand(3, LIGHT_BLUE, min(255 - 16, getLightValue(Device_ID - 1, LIGHT_BLUE)) + 16);
+				lightCommand(3, LIGHT_BLUE, min(255 - 16, getLightValue(DEVICE_ID - 1, LIGHT_BLUE)) + 16);
 				break;
 			case IR_BLUE_DARKER:
-				lightCommand(3, LIGHT_BLUE, max(16, getLightValue(Device_ID - 1, LIGHT_BLUE)) - 16);
+				lightCommand(3, LIGHT_BLUE, max(16, getLightValue(DEVICE_ID - 1, LIGHT_BLUE)) - 16);
 				break;
 
 			case IR_DIY1:
@@ -403,29 +427,29 @@ int16_t main() {
 
 				switch (irmpLastKey) {
 				case IR_RGB_BRIGHTER:
-					lightCommand(3, LIGHT_RGB_BRIGHTNESS, min(255 - tmpValue, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) + tmpValue);
+					lightCommand(3, LIGHT_RGB_BRIGHTNESS, min(255 - tmpValue, getLightValue(DEVICE_ID - 1, LIGHT_RGB_BRIGHTNESS)) + tmpValue);
 					break;
 				case IR_RGB_DARKER:
-					lightCommand(3, LIGHT_RGB_BRIGHTNESS, max(tmpValue, getLightValue(Device_ID - 1, LIGHT_RGB_BRIGHTNESS)) - tmpValue);
+					lightCommand(3, LIGHT_RGB_BRIGHTNESS, max(tmpValue, getLightValue(DEVICE_ID - 1, LIGHT_RGB_BRIGHTNESS)) - tmpValue);
 					break;
 
 				case IR_RED_BRIGHTER:
-					lightCommand(3, LIGHT_RED, min(255 - tmpValue, getLightValue(Device_ID - 1, LIGHT_RED)) + tmpValue);
+					lightCommand(3, LIGHT_RED, min(255 - tmpValue, getLightValue(DEVICE_ID - 1, LIGHT_RED)) + tmpValue);
 					break;
 				case IR_RED_DARKER:
-					lightCommand(3, LIGHT_RED, max(tmpValue, getLightValue(Device_ID - 1, LIGHT_RED)) - tmpValue);
+					lightCommand(3, LIGHT_RED, max(tmpValue, getLightValue(DEVICE_ID - 1, LIGHT_RED)) - tmpValue);
 					break;
 				case IR_GREEN_BRIGHTER:
-					lightCommand(3, LIGHT_GREEN, min(255 - tmpValue, getLightValue(Device_ID - 1, LIGHT_GREEN)) + tmpValue);
+					lightCommand(3, LIGHT_GREEN, min(255 - tmpValue, getLightValue(DEVICE_ID - 1, LIGHT_GREEN)) + tmpValue);
 					break;
 				case IR_GREEN_DARKER:
-					lightCommand(3, LIGHT_GREEN, max(tmpValue, getLightValue(Device_ID - 1, LIGHT_GREEN)) - tmpValue);
+					lightCommand(3, LIGHT_GREEN, max(tmpValue, getLightValue(DEVICE_ID - 1, LIGHT_GREEN)) - tmpValue);
 					break;
 				case IR_BLUE_BRIGHTER:
-					lightCommand(3, LIGHT_BLUE, min(255 - tmpValue, getLightValue(Device_ID - 1, LIGHT_BLUE)) + tmpValue);
+					lightCommand(3, LIGHT_BLUE, min(255 - tmpValue, getLightValue(DEVICE_ID - 1, LIGHT_BLUE)) + tmpValue);
 					break;
 				case IR_BLUE_DARKER:
-					lightCommand(3, LIGHT_BLUE, max(tmpValue, getLightValue(Device_ID - 1, LIGHT_BLUE)) - tmpValue);
+					lightCommand(3, LIGHT_BLUE, max(tmpValue, getLightValue(DEVICE_ID - 1, LIGHT_BLUE)) - tmpValue);
 					break;
 
 					//TODO nicht so einfach, da der wert bei 127 hängen bleibt, Hilfe: Zustandsvariablen (hoch/runter) mit timeout
@@ -456,14 +480,31 @@ int16_t main() {
 			centiSeconds++;
 			ledStateCallback(1);
 			if (programReady) {
-				if (getLightValue(Device_ID - 1, LIGHT_PROGRAM) == 1) {
+				if (getLightValue(DEVICE_ID - 1, LIGHT_PROGRAM) == 1) {
 					rgbCommand(255, 255, 255);
 				}
 				programReady = 0;
 			}
-//			if (centiSeconds % 512 == 1) {
-//				uart_puts("\ngithub.com/Boman/ledDimmer\n");
-//			}
+
+#ifdef MASTER
+			// poll slave
+			if (!disablePollSlave) {
+				uart1_puts("ia");
+				rs485Timer = INTERRUPTS_COUNT / 20;
+			}
+#endif
+
+#ifdef SLAVE
+			if (centiSeconds % 512 == 1) {
+				if (getLightValue(LED1_ADRESS, LIGHT_LED_BRIGHTNESS) > 127) {
+					setLightValue(1 << LED1_ADRESS, LIGHT_LED_BRIGHTNESS, 0);
+				} else {
+					setLightValue(1 << LED1_ADRESS, LIGHT_LED_BRIGHTNESS, 255);
+				}
+				slaveChanged = 1;
+				//uart_puts("\ngithub.com/Boman/ledDimmer\n");
+			}
+#endif
 		}
 	}
 

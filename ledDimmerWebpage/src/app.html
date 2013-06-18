@@ -7,12 +7,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 <title></title>
 <link rel="stylesheet"
-	href="https://s3.amazonaws.com/codiqa-cdn/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+	href="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.css" />
 <link rel="stylesheet" href="my.css" />
 <script src="https://s3.amazonaws.com/codiqa-cdn/jquery-1.7.2.min.js"></script>
 <script
-	src="https://s3.amazonaws.com/codiqa-cdn/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+	src="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.js"></script>
 <script src="http://autobahn.s3.amazonaws.com/js/autobahn.min.js"></script>
+<script src="purl.js"></script>
 <script src="my.js"></script>
 <!-- User-generated css -->
 <style>
@@ -35,12 +36,27 @@
 	<div data-role="page" id="page1">
 		<div data-role="header">
 			<h1>LED Dimmer</h1>
-			<a id="message_button" href="#" data-icon="alert" class="ui-btn-right">Problem</a>
-			<p
-				id="message_text" style="font-size: 85%; margin: -.3em 0 1em; text-align: right; display: none;">And
+			<a id="message_button" href="#" data-icon="alert"
+				class="ui-btn-right">Problem</a>
+			<p id="message_text"
+				style="font-size: 85%; margin: -.3em 0 1em; text-align: right; display: none;">And
 				here's some additional text in a paragraph.</p>
 		</div>
 		<div data-role="content">
+			<div id="dev" style="display: none">
+				<h3>Developer Mode</h3>
+				<input type="file" id="file" name="file" class="ui-input-text" />
+				<label for="select-device" class="select">bootloader device:</label>
+				<select name="select-device" id="select-device">
+					<option value="nodevice">no device</option>
+					<option value="master">Master</option>
+					<option value="slave">Slave</option>
+				</select>
+				<button onclick="loadFile();">Load File</button>
+				<div id="progress_bar">
+					<div class="percent">0%</div>
+				</div>
+			</div>
 			<div data-role="fieldcontain">
 				<label for="slider_led1_brightness"> LED1 brightness </label> <input
 					id="slider_led1_brightness" type="range" name="slider" value="0"

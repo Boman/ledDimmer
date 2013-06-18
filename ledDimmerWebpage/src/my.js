@@ -53,7 +53,7 @@ function rpcCall(adressMask, lightType, value) {
 			'event' : 'lightSet',
 			'adressMask' : adressMask,
 			'lightType' : lightType,
-			'value' : value*1
+			'value' : value * 1
 		});
 	}
 }
@@ -103,7 +103,87 @@ function setMessage(messageIcon, messageName, messageText) {
 	$('#message_button').attr('data-icon', messageIcon);
 }
 
+function loadFile() {
+	if ($('#select-device').val() == "nodevice") {
+		alert('please select device');
+		return;
+	}
+
+	// Reset progress indicator on new file selection.
+	$('.percent').css('width', '0%');
+	$('.percent').textContent = '0%';
+
+	reader = new FileReader();
+	reader.onerror = function(evt) {
+		switch (evt.target.error.code) {
+		case evt.target.error.NOT_FOUND_ERR:
+			alert('File Not Found!');
+			break;
+		case evt.target.error.NOT_READABLE_ERR:
+			alert('File is not readable');
+			break;
+		case evt.target.error.ABORT_ERR:
+			break; // noop
+		default:
+			alert('An error occurred reading this file.');
+		}
+		;
+	};
+	reader.onprogress = updateProgress;
+	reader.onloadstart = function(e) {
+		$('#progress_bar').addClass('loading');
+	};
+	reader.onloadend = function(evt) {
+		if (evt.target.readyState == FileReader.DONE) {
+			if ($('#select-device').val() == "master") {
+				publishEvent({
+					'event' : 'bootLoad',
+					'adressMask' : 1,
+					'hex' : evt.target.result
+				});
+			} else if ($('#select-device').val() == "slave") {
+				publishEvent({
+					'event' : 'bootLoad',
+					'adressMask' : 2,
+					'hex' : evt.target.result
+				});
+			}
+		}
+	};
+
+	reader.readAsBinaryString(document.getElementById('file').files[0]);
+}
+
+function updateProgress(percentLoad) {
+	// Increase the progress bar length.
+	if (percentLoaded < 100) {
+		$('.percent').css('width', percentLoaded + '%');
+		$('.percent').textContent = percentLoaded + '%';
+	} else if (percentLoaded == 100) {
+		// Ensure that the progress bar displays 100% at the end.
+		$('.percent').css('width', '100%');
+		$('.percent').textContent = '100%';
+		setTimeout("$('#progress_bar').removeClass('loading');", 2000);
+	}
+}
+
 $(function() {
+	// start developer mode
+	if ($.url().param().hasOwnProperty('d')) {
+		$('#dev').show();
+
+		$('#file').change(function() {
+			if ($('#file').val().match(/ledDimmerFirmwareMaster\.hex$/)) {
+				$('#select-device option[value=master]').attr('selected', 'selected');
+			} else if ($('#file').val().match(/ledDimmerFirmwareSlave\.hex$/)) {
+				$('#select-device option[value=slave]').attr('selected', 'selected');
+			} else {
+				$('#select-device option[value=nodevice]').attr('selected', 'selected');
+			}
+			$('#select-device').selectmenu('refresh');
+		});
+	}
+
 	// register change listeners
 	for ( var key in lightProperties) {
 		if (lightProperties.hasOwnProperty(key)) {
@@ -178,6 +258,8 @@ $(function() {
 		session.subscribe("http://leddimmer.unserHaus.name/event", function(topic, event) {
 			if (event['event'] = "lightSet") {
 				updateLight(event['adressMask'], event['lightType'], event['value']);
+			} else if (event['event'] = "bootProgress") {
+				updateProgress(event['progress']);
 			}
 		});
 	},
