@@ -154,7 +154,7 @@ function loadFile() {
 	reader.readAsBinaryString(document.getElementById('file').files[0]);
 }
 
-function updateProgress(percentLoad) {
+function updateProgress(percentLoaded) {
 	// Increase the progress bar length.
 	if (percentLoaded < 100) {
 		$('.percent').css('width', percentLoaded + '%');

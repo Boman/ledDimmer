@@ -41,7 +41,7 @@ def receive():
 def bootloader(deviceAdress):
     global lastReceived
     #hexFileName = tkFileDialog.askopenfilename()
-    hexFileName = "/home/falko/git/ledDimmer/ledDimmerFirmware/Release/ledDimmerFirmware.hex"
+    hexFileName = "/home/falko/git/ledDimmer/ledDimmerFirmware/ledDimmerFirmwareMaster.hex"
     sendMessage("bs0%d" % deviceAdress)
     f = open(hexFileName, 'r')
     content = ''.join(f.readlines())

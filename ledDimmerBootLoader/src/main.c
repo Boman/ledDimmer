@@ -162,7 +162,7 @@ void parse_hex_input(uint8_t c) {
 		case PARSER_STATE_DATA:
 			hex_buffer[hex_cnt++] = c;
 			if (hex_cnt == 2) {
-				uart_putc('.');
+				//uart_putc('.');
 				hex_cnt = 0;
 				flash_data[flash_cnt] = (uint8_t) hex2num(hex_buffer, 2);
 				hex_check += flash_data[flash_cnt];
@@ -176,7 +176,7 @@ void parse_hex_input(uint8_t c) {
 				/* Puffer voll -> schreibe Page */
 				if (flash_cnt == SPM_PAGESIZE) {
 					//uart_puts("P");
-					//_delay_ms(100);
+					_delay_ms(100);
 					program_page((uint16_t) flash_page, flash_data);
 					memset(flash_data, 0xFF, sizeof(flash_data));
 					flash_cnt = 0;
@@ -194,7 +194,7 @@ void parse_hex_input(uint8_t c) {
 				/* Dateiende -> schreibe Restdaten */
 				if (hex_type == 1) {
 					//uart_puts("P");
-					//_delay_ms(100);
+					_delay_ms(100);
 					program_page((uint16_t) flash_page, flash_data);
 					boot_state = BOOT_STATE_EXIT;
 				}
@@ -242,6 +242,13 @@ int main() {
 	uart_init(UART_BAUD_SELECT(BOOT_UART_BAUD_RATE,F_CPU));
 	sei();
 
+#ifdef MASTER
+	uart_puts("bs01");
+#endif
+#ifdef SLAVE
+	uart1_puts("bs02");
+#endif
+
 	do {
 #ifdef MASTER
 		c = uart_getc();
@@ -250,10 +257,16 @@ int main() {
 		c = uart1_getc();
 #endif
 		if (!(c & UART_NO_DATA)) {
+			uart_puts("bscc");
 			switch (decodeMessage((uint8_t) c)) {
 			case BOOTLOADER_HEX_MESSAGE_TYPE:
 				for (uint8_t i = 5; i < 5 + messageNumber0[0]; ++i) {
+					LED_ON(LED_BLUE);
 					parse_hex_input(messageBuffer0[i]);
+//					uart_puts("bs");
+//					uart_putc('0' + boot_state);
+//					uart_putc('0' + parser_state);
+					LED_OFF(LED_BLUE);
 				}
 #ifdef MASTER
 				uart_puts("ba");
@@ -265,13 +278,18 @@ int main() {
 			case BOOTLOADER_START_MESSAGE_TYPE:
 				if (messageNumber0[0] == 0) {
 					boot_state = BOOT_STATE_EXIT;
+				} else if (messageNumber0[0] == Device_ID) {
+#ifdef MASTER
+					uart_puts("bs01");
+#endif
+#ifdef SLAVE
+					uart1_puts("bs02");
+#endif
 				}
 				break;
 			}
 		}
 	} while (boot_state != BOOT_STATE_EXIT);
-
-	LED_ON(LED_BLUE);
 
 	_delay_ms(1000);
 

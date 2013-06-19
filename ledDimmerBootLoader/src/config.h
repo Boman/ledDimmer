@@ -22,8 +22,8 @@
 
 #define LEDS_PORT      		DDRA              // Port für PWM
 #define LEDS_DDR        		PORTA               // Datenrichtungsregister für PWM
-#define LED_RED				5
-#define LED_GREEN			6
+#define LED_GREEN			5
+#define LED_RED				6
 #define LED_BLUE				7
 #define LEDS_INIT				LEDS_DDR |= ((1 << LED_RED) | (1 << LED_GREEN) | (1 << LED_BLUE));
 

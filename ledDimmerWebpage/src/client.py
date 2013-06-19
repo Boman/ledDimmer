@@ -47,7 +47,7 @@ class PubSubClient1(WampClientProtocol):
     def sendBluetoothMessage(self, message):
         self.bm.sendMessage(message)
 
-if __name__ == '__main__':
+if __name__ == '__main__':    
     log.startLogging(sys.stdout)
     debug = len(sys.argv) > 1 and sys.argv[1] == 'debug'
     debug = True

@@ -18,8 +18,6 @@
 
 import sys
 
-from bluetoothManager import BluetoothManager
-
 from twisted.python import log
 from twisted.internet import reactor
 from twisted.web.server import Site
