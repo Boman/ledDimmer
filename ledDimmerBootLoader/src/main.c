@@ -5,6 +5,7 @@
 #include <util/delay.h>
 #include "uart/uart.h"
 #include "communication.h"
+#include "config.h"
 
 void program_page(uint32_t page, uint8_t *buf);
 void parse_hex_input(uint8_t c);
@@ -176,7 +177,7 @@ void parse_hex_input(uint8_t c) {
 				/* Puffer voll -> schreibe Page */
 				if (flash_cnt == SPM_PAGESIZE) {
 					//uart_puts("P");
-					_delay_ms(100);
+					//_delay_ms(100);
 					program_page((uint16_t) flash_page, flash_data);
 					memset(flash_data, 0xFF, sizeof(flash_data));
 					flash_cnt = 0;
@@ -194,7 +195,7 @@ void parse_hex_input(uint8_t c) {
 				/* Dateiende -> schreibe Restdaten */
 				if (hex_type == 1) {
 					//uart_puts("P");
-					_delay_ms(100);
+					//_delay_ms(100);
 					program_page((uint16_t) flash_page, flash_data);
 					boot_state = BOOT_STATE_EXIT;
 				}
@@ -223,8 +224,18 @@ int main() {
 	/* Funktionspointer auf 0x0000 */
 	void (*start)(void) = 0x0000;
 
+	/* Interrupt Vektoren verbiegen */
+	char sregtemp = SREG;
+	cli();
+	temp = MCUCR;
+	MCUCR = temp | (1 << IVCE);
+	MCUCR = temp | (1 << IVSEL);
+	SREG = sregtemp;
+
 	LEDS_INIT;
 	LED_ON(LED_GREEN);
+	LED_OFF(LED_RED);
+	LED_ON(LED_BLUE);
 
 	initCommunication();
 	RS485_RECEIVE;
@@ -232,11 +243,6 @@ int main() {
 	/* Füllen der Puffer mit definierten Werten */
 	memset(hex_buffer, 0x00, sizeof(hex_buffer));
 	memset(flash_data, 0xFF, sizeof(flash_data));
-
-	/* Interrupt Vektoren verbiegen */
-	temp = MCUCR;
-	MCUCR = temp | (1 << IVCE);
-	MCUCR = temp | (1 << IVSEL);
 
 	/* Einstellen der Baudrate und aktivieren der Interrupts */
 	uart_init(UART_BAUD_SELECT(BOOT_UART_BAUD_RATE,F_CPU));
@@ -246,6 +252,7 @@ int main() {
 	uart_puts("bs01");
 #endif
 #ifdef SLAVE
+	LED_ON(LED_RED);
 	uart1_puts("bs02");
 #endif
 
@@ -257,16 +264,10 @@ int main() {
 		c = uart1_getc();
 #endif
 		if (!(c & UART_NO_DATA)) {
-			uart_puts("bscc");
 			switch (decodeMessage((uint8_t) c)) {
 			case BOOTLOADER_HEX_MESSAGE_TYPE:
 				for (uint8_t i = 5; i < 5 + messageNumber0[0]; ++i) {
-					LED_ON(LED_BLUE);
 					parse_hex_input(messageBuffer0[i]);
-//					uart_puts("bs");
-//					uart_putc('0' + boot_state);
-//					uart_putc('0' + parser_state);
-					LED_OFF(LED_BLUE);
 				}
 #ifdef MASTER
 				uart_puts("ba");
@@ -274,11 +275,21 @@ int main() {
 #ifdef SLAVE
 				uart1_puts("ba");
 #endif
+				switch (parser_state) {
+				case PARSER_STATE_START:
+				case PARSER_STATE_ERROR:
+					LED_OFF(LED_BLUE);
+					break;
+				default:
+					LED_ON(LED_BLUE);
+					break;
+				}
 				break;
 			case BOOTLOADER_START_MESSAGE_TYPE:
 				if (messageNumber0[0] == 0) {
 					boot_state = BOOT_STATE_EXIT;
 				} else if (messageNumber0[0] == Device_ID) {
+					LED_ON(LED_RED);
 #ifdef MASTER
 					uart_puts("bs01");
 #endif
@@ -293,7 +304,7 @@ int main() {
 
 	_delay_ms(1000);
 
-	/* Interrupt Vektoren wieder gerade biegen */
+	/* Interrupt Vektoren wieder gerade biegen */cli();
 	temp = MCUCR;
 	MCUCR = temp | (1 << IVCE);
 	MCUCR = temp & ~(1 << IVSEL);

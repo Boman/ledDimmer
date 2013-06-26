@@ -52,6 +52,7 @@ uint8_t decodeMessage0(uint8_t c) {
 		switch (messageBuffer0[1]) {
 		case 'b':
 		case 'l':
+		case 'i':
 			break;
 		default:
 			messageBuffer0[0] = 0;
@@ -68,6 +69,7 @@ uint8_t decodeMessage0(uint8_t c) {
 				break;
 			case 'h':
 				messageType0 = BOOTLOADER_HEX_MESSAGE_TYPE;
+				messageLength0 = 4;
 				break;
 			case 's':
 				messageType0 = BOOTLOADER_START_MESSAGE_TYPE;
@@ -83,6 +85,17 @@ uint8_t decodeMessage0(uint8_t c) {
 			case 's':
 				messageType0 = LIGHT_SET_MESSAGE_TYPE;
 				messageLength0 = 6;
+				break;
+			default:
+				messageBuffer0[0] = 0;
+				break;
+			}
+			break;
+		case 'i':
+			switch (messageBuffer0[2]) {
+			case 'a':
+				messageType0 = INFO_ALIVE_MESSAGE_TYPE;
+				messageLength0 = 2;
 				break;
 			default:
 				messageBuffer0[0] = 0;
@@ -126,61 +139,60 @@ uint8_t decodeMessage1(uint8_t c) {
 	// MASTER Protocol
 #ifdef MASTER
 	switch (messageBuffer1[0]) {
-		case 1:
+	case 1:
 		switch (messageBuffer1[1]) {
-			case 'b':
-			case 'l':
-			case 'i':
+		case 'b':
+		case 'l':
 			break;
-			default:
+		default:
 			messageBuffer1[0] = 0;
 			break;
 		}
 		break;
-		break;
-		case 2:
+	case 2:
 		switch (messageBuffer1[1]) {
-			case 'b':
+		case 'b':
 			switch (messageBuffer1[2]) {
-				case 'a':
+			case 'a':
 				messageType1 = BOOTLOADER_ACK_MESSAGE_TYPE;
 				messageLength1 = 2;
 				break;
-				case 'h':
+			case 'h':
 				messageType1 = BOOTLOADER_HEX_MESSAGE_TYPE;
+				messageLength1 = 4;
 				break;
-				case 's':
+			case 's':
 				messageType1 = BOOTLOADER_START_MESSAGE_TYPE;
 				messageLength1 = 4;
 				break;
-				default:
+			default:
 				messageBuffer1[0] = 0;
 				break;
 			}
 			break;
-			case 'l':
+		case 'l':
 			switch (messageBuffer1[2]) {
-				case 's':
+			case 's':
 				messageType1 = LIGHT_SET_MESSAGE_TYPE;
 				messageLength1 = 6;
 				break;
-				default:
+			default:
 				messageBuffer1[0] = 0;
 				break;
 			}
 			break;
-			default:
+		default:
 			messageBuffer1[0] = 0;
 			break;
 		}
 		break;
-		case 4:
+	case 4:
 		messageNumber1[0] = hex2num(&messageBuffer1[3], 2);
 		if (messageType1 == BOOTLOADER_HEX_MESSAGE_TYPE) {
 			messageLength1 += messageNumber1[0];
 		}
 		break;
-		case 6:
+	case 6:
 		messageNumber1[1] = hex2num(&messageBuffer1[5], 2);
 		break;
 	}
@@ -214,6 +226,7 @@ uint8_t decodeMessage1(uint8_t c) {
 				break;
 				case 'h':
 				messageType1 = BOOTLOADER_HEX_MESSAGE_TYPE;
+				messageLength1 = 4;
 				break;
 				case 's':
 				messageType1 = BOOTLOADER_START_MESSAGE_TYPE;

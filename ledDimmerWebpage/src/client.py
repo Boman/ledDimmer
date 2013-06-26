@@ -45,7 +45,7 @@ class PubSubClient1(WampClientProtocol):
         self.publish("http://leddimmer.unserHaus.name/event", message)
      
     def sendBluetoothMessage(self, message):
-        self.bm.sendMessage(message)
+        self.bm.sendMessage(message)        
 
 if __name__ == '__main__':    
     log.startLogging(sys.stdout)
@@ -54,6 +54,7 @@ if __name__ == '__main__':
 
     factory = WampClientFactory("ws://localhost:9000", debugWamp=debug)
     factory.protocol = PubSubClient1
+    factory.setProtocolOptions(tcpNoDelay=True)
 
     connectWS(factory)
 

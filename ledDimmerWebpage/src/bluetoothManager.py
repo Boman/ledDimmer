@@ -36,13 +36,20 @@ class BluetoothManager:
         self.waitForMessage = message
         self.waitForState = 1
         while datetime.now() - start < timedelta(seconds=timeout) and self.waitForState == 1:
-            pass
+            sleep(0.01)
         print "wait over:", (self.waitForState == 2)
         return self.waitForState == 2
     
     def sendMessage(self, message):
         if message["event"] == "lightSet":
             sending = "ls%01x%01x%02x" % (message["adressMask"], message["lightType"], message["value"])
+            print "sending:", sending
+            try:
+                self.connection.send(sending)
+            except IOError:
+                pass
+        if message["event"] == "infoAlive":
+            sending = "ia"
             print "sending:", sending
             try:
                 self.connection.send(sending)
@@ -58,6 +65,7 @@ class BluetoothManager:
             if self.waitFor({"event" : "bootStart", "adressMask" : message["adressMask"]}, 10):
                 content = message["hex"]
                 totalLength = len(content)
+                lastProgress = 0
                 while len(content) > 0:
                     tmp = content[:20]
                     content = content[20:]
@@ -71,8 +79,12 @@ class BluetoothManager:
                         pass
                     if not self.waitFor({'event' : 'bootAcknowledge'}, 10):
                         return
-                    for listener in self.listener:
-                        listener({'event' : 'bootProgress', 'progress' :100 - 100 * len(content) / totalLength})
+                    progress = 100 - 100.0 * len(content) / totalLength
+                    if progress > lastProgress + 0.5 or progress == 100:
+                        for listener in self.listener:
+                            listener({"event" : "bootProgress", "progress" : progress})
+                        sleep(0.1)
+                        lastProgress = progress
                     print "loaded %.2f percent" % (100 - 100.0 * len(content) / totalLength)
 
     def extractMessage(self):
@@ -122,8 +134,23 @@ class BluetoothManager:
     def start(self):
         try:
             thread.start_new_thread(self.run, ())
+            #thread.start_new_thread(self.keepAliveThread, ())
         except:
             print "Error: unable to start thread"
+
+    def keepAliveThread(self):
+        self.progress = 0
+        while True:
+            #self.sendMessage({"event" : "infoAlive"})
+            for listener in self.listener:
+                listener({"event" : "bootProgress", "progress" : self.progress})
+            if self.progress == 100:
+                sleep(8)
+                self.progress = 3
+            self.progress = self.progress + 0.3
+            if self.progress > 100:
+                self.progress = 100
+            sleep(0.1)
 
 if __name__ == '__main__':
     bm = BluetoothManager("07:12:05:16:67:00", 1)
@@ -133,4 +160,3 @@ if __name__ == '__main__':
         sleep(1)
         bm.sendMessage("ls34ff")
         sleep(1)
-    

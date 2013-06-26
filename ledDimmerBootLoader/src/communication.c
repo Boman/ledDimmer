@@ -58,6 +58,7 @@ uint8_t decodeMessage(uint8_t c) {
 				break;
 			case 'h':
 				messageType0 = BOOTLOADER_HEX_MESSAGE_TYPE;
+				messageLength0 = 4;
 				break;
 			case 's':
 				messageType0 = BOOTLOADER_START_MESSAGE_TYPE;

@@ -43,7 +43,8 @@ if __name__ == '__main__':
     
     factory = WampServerFactory("ws://localhost:9000", debugWamp=debug)
     factory.protocol = PubSubServer1
-    factory.setProtocolOptions(allowHixie76=True)
+    factory.setProtocolOptions(allowHixie76=True,
+                          tcpNoDelay=True)
     listenWS(factory)
     
     webdir = File(".")

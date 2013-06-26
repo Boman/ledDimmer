@@ -129,9 +129,7 @@ function loadFile() {
 		}
 		;
 	};
-	reader.onprogress = updateProgress;
 	reader.onloadstart = function(e) {
-		$('#progress_bar').addClass('loading');
 	};
 	reader.onloadend = function(evt) {
 		if (evt.target.readyState == FileReader.DONE) {
@@ -158,12 +156,11 @@ function updateProgress(percentLoaded) {
 	// Increase the progress bar length.
 	if (percentLoaded < 100) {
 		$('.percent').css('width', percentLoaded + '%');
-		$('.percent').textContent = percentLoaded + '%';
+		$('.percent').text(percentLoaded + '%');
 	} else if (percentLoaded == 100) {
 		// Ensure that the progress bar displays 100% at the end.
 		$('.percent').css('width', '100%');
-		$('.percent').textContent = '100%';
-		setTimeout("$('#progress_bar').removeClass('loading');", 2000);
+		$('.percent').text('100%');
 	}
 }
 
@@ -255,11 +252,17 @@ $(function() {
 	// WAMP session was established
 	function(sess) {
 		session = sess;
+
+		// get new light values
+//		publishEvent({
+//			'event' : 'infoAlive'
+//		});
+
 		session.subscribe("http://leddimmer.unserHaus.name/event", function(topic, event) {
-			if (event['event'] = "lightSet") {
+			if (event['event'] == "lightSet") {
 				updateLight(event['adressMask'], event['lightType'], event['value']);
-			} else if (event['event'] = "bootProgress") {
-				updateProgress(event['progress']);
+			} else if (event['event'] == "bootProgress") {
+				updateProgress(Math.round(event['progress'] * 10) / 10);
 			}
 		});
 	},
