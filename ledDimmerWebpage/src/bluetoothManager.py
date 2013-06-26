@@ -65,7 +65,6 @@ class BluetoothManager:
             if self.waitFor({"event" : "bootStart", "adressMask" : message["adressMask"]}, 10):
                 content = message["hex"]
                 totalLength = len(content)
-                lastProgress = 0
                 while len(content) > 0:
                     tmp = content[:20]
                     content = content[20:]
@@ -80,11 +79,8 @@ class BluetoothManager:
                     if not self.waitFor({'event' : 'bootAcknowledge'}, 10):
                         return
                     progress = 100 - 100.0 * len(content) / totalLength
-                    if progress > lastProgress + 0.5 or progress == 100:
-                        for listener in self.listener:
-                            listener({"event" : "bootProgress", "progress" : progress})
-                        sleep(0.1)
-                        lastProgress = progress
+                    for listener in self.listener:
+                        listener({"event" : "bootProgress", "progress" : progress})
                     print "loaded %.2f percent" % (100 - 100.0 * len(content) / totalLength)
 
     def extractMessage(self):
@@ -145,12 +141,12 @@ class BluetoothManager:
             for listener in self.listener:
                 listener({"event" : "bootProgress", "progress" : self.progress})
             if self.progress == 100:
-                sleep(8)
+                sleep(2)
                 self.progress = 3
-            self.progress = self.progress + 0.3
+            self.progress = self.progress + 0.03
             if self.progress > 100:
                 self.progress = 100
-            sleep(0.1)
+            sleep(0.01)
 
 if __name__ == '__main__':
     bm = BluetoothManager("07:12:05:16:67:00", 1)

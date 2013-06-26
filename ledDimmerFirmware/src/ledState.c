@@ -30,11 +30,11 @@ volatile uint8_t rgbSpeedOld = START_SPEED;
 // the actual position in the rgb program
 volatile uint8_t rgbProgramProgress = 0;
 
-#define C_WHITE					255, 255, 255
-#define C_BLACK					0, 0, 0
-#define C_RED						255, 0, 0
-#define C_GREEN					0, 255, 0
-#define C_BLUE						0, 0, 255
+#define C_WHITE                       255, 255, 255
+#define C_BLACK                       0, 0, 0
+#define C_RED                         255, 0, 0
+#define C_GREEN                       0, 255, 0
+#define C_BLUE                        0, 0, 255
 
 const uint8_t rgbProgramOffsets[LED_NUM_PROGRAMS + 1] PROGMEM = { 0, // startup program
         1, // auto program
