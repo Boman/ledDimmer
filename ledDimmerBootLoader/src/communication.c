@@ -100,6 +100,6 @@ void initCommunication() {
 
 #ifdef SLAVE
 	uart1_init(UART_BAUD_SELECT(UART_BAUD_RATE, F_CPU));
-#endif
 	RS485_INIT;
+#endif
 }

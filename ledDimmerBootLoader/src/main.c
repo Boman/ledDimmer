@@ -32,39 +32,39 @@ int main();
 #define PARSER_STATE_ERROR      6
 
 void program_page(uint32_t page, uint8_t *buf) {
-	uint16_t i;
-	uint8_t sreg;
+    uint16_t i;
+    uint8_t sreg;
 
-	/* Disable interrupts */
-	sreg = SREG;
-	cli();
+    /* Disable interrupts */
+    sreg = SREG;
+    cli();
 
-	eeprom_busy_wait ();
+    eeprom_busy_wait ();
 
-	boot_page_erase(page);
-	boot_spm_busy_wait (); /* Wait until the memory is erased. */
+    boot_page_erase(page);
+    boot_spm_busy_wait (); /* Wait until the memory is erased. */
 
-	for (i = 0; i < SPM_PAGESIZE; i += 2) {
-		/* Set up little-endian word. */
-		uint16_t w = *buf++;
-		w += (*buf++) << 8;
+    for (i = 0; i < SPM_PAGESIZE; i += 2) {
+        /* Set up little-endian word. */
+        uint16_t w = *buf++;
+        w += (*buf++) << 8;
 
-		boot_page_fill(page + i, w);
-	}
+        boot_page_fill(page + i, w);
+    }
 
-	boot_page_write(page);
-	/* Store buffer in flash page.		*/boot_spm_busy_wait(); /* Wait until the memory is written.*/
+    boot_page_write(page);
+    /* Store buffer in flash page.		*/boot_spm_busy_wait(); /* Wait until the memory is written.*/
 
-	/* Reenable RWW-section again. We need this if we want to jump back */
-	/* to the application after bootloading. */boot_rww_enable ();
+    /* Reenable RWW-section again. We need this if we want to jump back */
+    /* to the application after bootloading. */boot_rww_enable ();
 
-	/* Re-enable interrupts (if they were ever enabled). */
-	SREG = sreg;
+    /* Re-enable interrupts (if they were ever enabled). */
+    SREG = sreg;
 }
 
 // boolean-defintion for software-flags
 typedef enum {
-	FALSE, TRUE
+    FALSE, TRUE
 } bool_t;
 
 /* Intel-HEX Zieladresse */
@@ -102,215 +102,212 @@ hex_checksum = 0;
  * Parser for the received HEX-file content
  */
 void parse_hex_input(uint8_t c) {
-	/* Programmzustand: Parser */
-	if (boot_state == BOOT_STATE_PARSER) {
-		switch (parser_state) {
-		/* Warte auf Zeilen-Startzeichen */
-		case PARSER_STATE_START:
-			if (c == START_SIGN) {
-				parser_state = PARSER_STATE_SIZE;
-				hex_cnt = 0;
-				hex_check = 0;
-			}
-			break;
-			/* Parse Datengröße */
-		case PARSER_STATE_SIZE:
-			hex_buffer[hex_cnt++] = c;
-			if (hex_cnt == 2) {
-				parser_state = PARSER_STATE_ADDRESS;
-				hex_cnt = 0;
-				hex_size = (uint8_t) hex2num(hex_buffer, 2);
-				hex_check += hex_size;
-			}
-			break;
-			/* Parse Zieladresse */
-		case PARSER_STATE_ADDRESS:
-			hex_buffer[hex_cnt++] = c;
-			if (hex_cnt == 4) {
-				parser_state = PARSER_STATE_TYPE;
-				hex_cnt = 0;
-				hex_addr = hex2num(hex_buffer, 4);
-				hex_check += (uint8_t) hex_addr;
-				hex_check += (uint8_t) (hex_addr >> 8);
-				if (flash_page_flag) {
-					flash_page = hex_addr - hex_addr % SPM_PAGESIZE;
-					flash_page_flag = 0;
-				}
-			}
-			break;
-			/* Parse Zeilentyp */
-		case PARSER_STATE_TYPE:
-			hex_buffer[hex_cnt++] = c;
-			if (hex_cnt == 2) {
-				hex_cnt = 0;
-				hex_data_cnt = 0;
-				hex_type = (uint8_t) hex2num(hex_buffer, 2);
-				hex_check += hex_type;
-				switch (hex_type) {
-				case 0:
-					parser_state = PARSER_STATE_DATA;
-					break;
-				case 1:
-					parser_state = PARSER_STATE_CHECKSUM;
-					break;
-				default:
-					parser_state = PARSER_STATE_DATA;
-					break;
-				}
-			}
-			break;
-			/* Parse Flash-Daten */
-		case PARSER_STATE_DATA:
-			hex_buffer[hex_cnt++] = c;
-			if (hex_cnt == 2) {
-				//uart_putc('.');
-				hex_cnt = 0;
-				flash_data[flash_cnt] = (uint8_t) hex2num(hex_buffer, 2);
-				hex_check += flash_data[flash_cnt];
-				flash_cnt++;
-				hex_data_cnt++;
-				if (hex_data_cnt == hex_size) {
-					parser_state = PARSER_STATE_CHECKSUM;
-					hex_data_cnt = 0;
-					hex_cnt = 0;
-				}
-				/* Puffer voll -> schreibe Page */
-				if (flash_cnt == SPM_PAGESIZE) {
-					//uart_puts("P");
-					//_delay_ms(100);
-					program_page((uint16_t) flash_page, flash_data);
-					memset(flash_data, 0xFF, sizeof(flash_data));
-					flash_cnt = 0;
-					flash_page_flag = 1;
-				}
-			}
-			break;
-			/* Parse Checksumme */
-		case PARSER_STATE_CHECKSUM:
-			hex_buffer[hex_cnt++] = c;
-			if (hex_cnt == 2) {
-				hex_checksum = (uint8_t) hex2num(hex_buffer, 2);
-				hex_check += hex_checksum;
-				hex_check &= 0x00FF;
-				/* Dateiende -> schreibe Restdaten */
-				if (hex_type == 1) {
-					//uart_puts("P");
-					//_delay_ms(100);
-					program_page((uint16_t) flash_page, flash_data);
-					boot_state = BOOT_STATE_EXIT;
-				}
-				/* Überprüfe Checksumme -> muss '0' sein */
-				if (hex_check == 0)
-					parser_state = PARSER_STATE_START;
-				else
-					parser_state = PARSER_STATE_ERROR;
-			}
-			break;
-			/* Parserfehler (falsche Checksumme) */
-		case PARSER_STATE_ERROR:
-			//uart_putc('#');
-			LED_ON(LED_RED);
-			break;
-		default:
-			break;
-		}
-	}
+    /* Programmzustand: Parser */
+    if (boot_state == BOOT_STATE_PARSER) {
+        switch (parser_state) {
+        /* Warte auf Zeilen-Startzeichen */
+        case PARSER_STATE_START:
+            if (c == START_SIGN) {
+                parser_state = PARSER_STATE_SIZE;
+                hex_cnt = 0;
+                hex_check = 0;
+            }
+            break;
+            /* Parse Datengröße */
+        case PARSER_STATE_SIZE:
+            hex_buffer[hex_cnt++] = c;
+            if (hex_cnt == 2) {
+                parser_state = PARSER_STATE_ADDRESS;
+                hex_cnt = 0;
+                hex_size = (uint8_t) hex2num(hex_buffer, 2);
+                hex_check += hex_size;
+            }
+            break;
+            /* Parse Zieladresse */
+        case PARSER_STATE_ADDRESS:
+            hex_buffer[hex_cnt++] = c;
+            if (hex_cnt == 4) {
+                parser_state = PARSER_STATE_TYPE;
+                hex_cnt = 0;
+                hex_addr = hex2num(hex_buffer, 4);
+                hex_check += (uint8_t) hex_addr;
+                hex_check += (uint8_t) (hex_addr >> 8);
+                if (flash_page_flag) {
+                    flash_page = hex_addr - hex_addr % SPM_PAGESIZE;
+                    flash_page_flag = 0;
+                }
+            }
+            break;
+            /* Parse Zeilentyp */
+        case PARSER_STATE_TYPE:
+            hex_buffer[hex_cnt++] = c;
+            if (hex_cnt == 2) {
+                hex_cnt = 0;
+                hex_data_cnt = 0;
+                hex_type = (uint8_t) hex2num(hex_buffer, 2);
+                hex_check += hex_type;
+                switch (hex_type) {
+                case 0:
+                    parser_state = PARSER_STATE_DATA;
+                    break;
+                case 1:
+                    parser_state = PARSER_STATE_CHECKSUM;
+                    break;
+                default:
+                    parser_state = PARSER_STATE_DATA;
+                    break;
+                }
+            }
+            break;
+            /* Parse Flash-Daten */
+        case PARSER_STATE_DATA:
+            hex_buffer[hex_cnt++] = c;
+            if (hex_cnt == 2) {
+                //uart_putc('.');
+                hex_cnt = 0;
+                flash_data[flash_cnt] = (uint8_t) hex2num(hex_buffer, 2);
+                hex_check += flash_data[flash_cnt];
+                flash_cnt++;
+                hex_data_cnt++;
+                if (hex_data_cnt == hex_size) {
+                    parser_state = PARSER_STATE_CHECKSUM;
+                    hex_data_cnt = 0;
+                    hex_cnt = 0;
+                }
+                /* Puffer voll -> schreibe Page */
+                if (flash_cnt == SPM_PAGESIZE) {
+                    //uart_puts("P");
+                    //_delay_ms(100);
+                    program_page((uint16_t) flash_page, flash_data);
+                    memset(flash_data, 0xFF, sizeof(flash_data));
+                    flash_cnt = 0;
+                    flash_page_flag = 1;
+                }
+            }
+            break;
+            /* Parse Checksumme */
+        case PARSER_STATE_CHECKSUM:
+            hex_buffer[hex_cnt++] = c;
+            if (hex_cnt == 2) {
+                hex_checksum = (uint8_t) hex2num(hex_buffer, 2);
+                hex_check += hex_checksum;
+                hex_check &= 0x00FF;
+                /* Dateiende -> schreibe Restdaten */
+                if (hex_type == 1) {
+                    //uart_puts("P");
+                    //_delay_ms(100);
+                    program_page((uint16_t) flash_page, flash_data);
+                    boot_state = BOOT_STATE_EXIT;
+                }
+                /* Überprüfe Checksumme -> muss '0' sein */
+                if (hex_check == 0)
+                    parser_state = PARSER_STATE_START;
+                else
+                    parser_state = PARSER_STATE_ERROR;
+            }
+            break;
+            /* Parserfehler (falsche Checksumme) */
+        case PARSER_STATE_ERROR:
+            //uart_putc('#');
+            LED_ON(LED_RED);
+            break;
+        default:
+            break;
+        }
+    }
 }
 
 int main() {
-	/* Empfangenes Zeichen + Statuscode */
-	uint16_t c = 0;
+    /* Empfangenes Zeichen + Statuscode */
+    uint16_t c = 0;
 
-	/* Funktionspointer auf 0x0000 */
-	void (*start)(void) = 0x0000;
+    /* Funktionspointer auf 0x0000 */
+    void (*start)(void) = 0x0000;
 
-	/* Interrupt Vektoren verbiegen */
-	char sregtemp = SREG;
-	cli();
-	temp = MCUCR;
-	MCUCR = temp | (1 << IVCE);
-	MCUCR = temp | (1 << IVSEL);
-	SREG = sregtemp;
+    /* Interrupt Vektoren verbiegen */
+    char sregtemp = SREG;
+    cli();
+    temp = MCUCR;
+    MCUCR = temp | (1 << IVCE);
+    MCUCR = temp | (1 << IVSEL);
+    SREG = sregtemp;
 
-	LEDS_INIT;
-	LED_ON(LED_GREEN);
-	LED_OFF(LED_RED);
-	LED_ON(LED_BLUE);
+    LEDS_INIT;
+    LED_ON(LED_GREEN);
+    LED_OFF(LED_RED);
+    LED_ON(LED_BLUE);
 
-	initCommunication();
-	RS485_RECEIVE;
+    initCommunication();
+    RS485_RECEIVE;
 
-	/* Füllen der Puffer mit definierten Werten */
-	memset(hex_buffer, 0x00, sizeof(hex_buffer));
-	memset(flash_data, 0xFF, sizeof(flash_data));
+    /* Füllen der Puffer mit definierten Werten */
+    memset(hex_buffer, 0x00, sizeof(hex_buffer));
+    memset(flash_data, 0xFF, sizeof(flash_data));
 
-	/* Einstellen der Baudrate und aktivieren der Interrupts */
-	uart_init(UART_BAUD_SELECT(BOOT_UART_BAUD_RATE,F_CPU));
-	sei();
+    /* aktivieren der Interrupts */
+    sei();
 
 #ifdef MASTER
-	uart_puts("bs01");
+    uart_puts("bs01");
 #endif
 #ifdef SLAVE
-	LED_ON(LED_RED);
-	uart1_puts("bs02");
+    uart1_puts("bs02");
 #endif
 
-	do {
+    do {
 #ifdef MASTER
-		c = uart_getc();
+        c = uart_getc();
 #endif
 #ifdef SLAVE
-		c = uart1_getc();
+        c = uart1_getc();
 #endif
-		if (!(c & UART_NO_DATA)) {
-			switch (decodeMessage((uint8_t) c)) {
-			case BOOTLOADER_HEX_MESSAGE_TYPE:
-				for (uint8_t i = 5; i < 5 + messageNumber0[0]; ++i) {
-					parse_hex_input(messageBuffer0[i]);
-				}
+        if (!(c & UART_NO_DATA)) {
+            switch (decodeMessage((uint8_t) c)) {
+            case BOOTLOADER_HEX_MESSAGE_TYPE:
+                for (uint8_t i = 5; i < 5 + messageNumber0[0]; ++i) {
+                    parse_hex_input(messageBuffer0[i]);
+                }
 #ifdef MASTER
-				uart_puts("ba");
+                uart_puts("ba");
 #endif
 #ifdef SLAVE
-				uart1_puts("ba");
+                uart1_puts("ba");
 #endif
-				switch (parser_state) {
-				case PARSER_STATE_START:
-				case PARSER_STATE_ERROR:
-					LED_OFF(LED_BLUE);
-					break;
-				default:
-					LED_ON(LED_BLUE);
-					break;
-				}
-				break;
-			case BOOTLOADER_START_MESSAGE_TYPE:
-				if (messageNumber0[0] == 0) {
-					boot_state = BOOT_STATE_EXIT;
-				} else if (messageNumber0[0] == Device_ID) {
-					LED_ON(LED_RED);
+                switch (parser_state) {
+                case PARSER_STATE_START:
+                case PARSER_STATE_ERROR:
+                    LED_OFF(LED_BLUE);
+                    break;
+                default:
+                    LED_ON(LED_BLUE);
+                    break;
+                }
+                break;
+            case BOOTLOADER_START_MESSAGE_TYPE:
+                if (messageNumber0[0] == 0) {
+                    boot_state = BOOT_STATE_EXIT;
+                } else if (messageNumber0[0] == DEVICE_ID) {
 #ifdef MASTER
-					uart_puts("bs01");
+                    uart_puts("bs01");
 #endif
 #ifdef SLAVE
-					uart1_puts("bs02");
+                    uart1_puts("bs02");
 #endif
-				}
-				break;
-			}
-		}
-	} while (boot_state != BOOT_STATE_EXIT);
+                }
+                break;
+            }
+        }
+    } while (boot_state != BOOT_STATE_EXIT);
 
-	_delay_ms(1000);
+    _delay_ms(1000);
 
-	/* Interrupt Vektoren wieder gerade biegen */cli();
-	temp = MCUCR;
-	MCUCR = temp | (1 << IVCE);
-	MCUCR = temp & ~(1 << IVSEL);
+    /* Interrupt Vektoren wieder gerade biegen */cli();
+    temp = MCUCR;
+    MCUCR = temp | (1 << IVCE);
+    MCUCR = temp & ~(1 << IVSEL);
 
-	/* Reset */
-	start();
+    /* Reset */
+    start();
 
-	return 0;
+    return 0;
 }

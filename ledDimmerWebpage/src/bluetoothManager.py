@@ -71,7 +71,7 @@ class BluetoothManager:
                     hex1 = hex(len(tmp) / 16)[-1:]
                     hex2 = hex(len(tmp) % 16)[-1:]
                     sending = "bh%s%s%s" % (hex1, hex2, tmp)
-                    print "sending:", sending
+                    #print "sending:", sending
                     try:
                         self.connection.send(sending)
                     except IOError:
@@ -81,7 +81,7 @@ class BluetoothManager:
                     progress = 100 - 100.0 * len(content) / totalLength
                     for listener in self.listener:
                         listener({"event" : "bootProgress", "progress" : progress})
-                    print "loaded %.2f percent" % (100 - 100.0 * len(content) / totalLength)
+                    #print "loaded %.2f percent" % (100 - 100.0 * len(content) / totalLength)
 
     def extractMessage(self):
         matchObj = re.match(r'ls([0-9a-f])([0-9a-f])([0-9a-f]{2})(.*)', self.receiveBuffer, re.I)

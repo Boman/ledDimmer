@@ -9,16 +9,17 @@
 #define CONFIG_H_
 
 #ifdef MASTER
-#define Device_ID 1
+#define DEVICE_ID 1
+#define IR_DEVICE
 #elif defined SLAVE
-#define  Device_ID 2
+#define  DEVICE_ID 2
 #else
 #error "choose Target MASTER or SLAVE"
 #endif
 
-#define RS485_DIRECTION_DDR		DDRB
-#define RS485_DIRECTION_PORT		PORTB
-#define RS485_DIRECTION_PIN		PB4
+#define RS485_DIRECTION_DDR         DDRD
+#define RS485_DIRECTION_PORT        PORTD
+#define RS485_DIRECTION_PIN         PD4
 
 #define LEDS_PORT      		DDRA              // Port für PWM
 #define LEDS_DDR        		PORTA               // Datenrichtungsregister für PWM

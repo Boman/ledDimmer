@@ -164,8 +164,6 @@ int16_t main() {
                     uart1_puts("bs");
                     uart1_putc(num2hex((messageNumber0[0] & 0xF0) >> 4));
                     uart1_putc(num2hex(messageNumber0[0] & 0x0F));
-                    RS485_RECEIVE;
-                    _delay_ms(100);
                 }
                 break;
             case BOOTLOADER_HEX_MESSAGE_TYPE:

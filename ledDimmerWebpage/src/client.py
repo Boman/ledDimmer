@@ -41,7 +41,7 @@ class PubSubClient1(WampClientProtocol):
         self.sendBluetoothMessage(event)
     
     def onBluetoothMessage(self, message):
-        print message
+        #print message
         self.publish("http://leddimmer.unserHaus.name/event", message)
      
     def sendBluetoothMessage(self, message):
