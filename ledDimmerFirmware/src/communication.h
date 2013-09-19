@@ -29,6 +29,8 @@
 
 #define LIGHT_SET_MESSAGE_TYPE									0x07
 
+#define ENOCEAN_MESSAGE_TYPE									0x09
+
 uint8_t num2hex(uint8_t num);
 uint16_t hex2num(const uint8_t * ascii, uint8_t num);
 
@@ -49,6 +51,22 @@ extern volatile uint16_t rs485Timer;
 #endif
 
 void rs485_wait_over();
+
+#define CHECK_FAILED    0x07
+#define OK              0xff
+
+// enocean msg structure
+struct EnoceanMsg {
+	uint8_t h_seq;
+	uint8_t length;
+	uint8_t org;
+	uint8_t data[4];
+	uint32_t id;
+	uint8_t status;
+};
+
+/* prototypes */
+uint8_t enoceanDecodeMsg(struct EnoceanMsg* msg);
 
 void initCommunication();
 

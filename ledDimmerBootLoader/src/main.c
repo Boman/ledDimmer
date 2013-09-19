@@ -11,7 +11,6 @@ void program_page(uint32_t page, uint8_t *buf);
 void parse_hex_input(uint8_t c);
 int main();
 
-#define BOOT_UART_BAUD_RATE     9600     /* Baudrate */
 #define START_SIGN              ':'      /* Hex-Datei Zeilenstartzeichen */
 
 #define BOOTLOADER_START_MESSAGE_TYPE				0x01
@@ -217,6 +216,30 @@ void parse_hex_input(uint8_t c) {
     }
 }
 
+//TODO this works around the problem with uart1 not sending
+#define F_INTERRUPTS                15000
+#define INTERRUPTS_COUNT            (F_INTERRUPTS / 100)
+
+// Timer 1 output compare A interrupt service routine, called every 1/15000 sec
+ISR( TIMER1_COMPA_vect) {
+    // Implementiere die ISR ohne zunaechst weitere IRQs zuzulassen
+    TIMSK1 = 0; // deactivate Interrupt
+    // Erlaube alle Interrupts (ausser OCIE1A)
+    sei();
+
+    // IRQs global deaktivieren um die OCIE1A-IRQ wieder gefahrlos
+    // aktivieren zu koennen
+    cli();
+    TIMSK1 = 1 << OCIE1A; // OCIE1A: Interrupt by timer compare
+}
+
+void timer1_init(void) {
+    OCR1A = (F_CPU / F_INTERRUPTS) - 1; // compare value: 1/15000 of CPU frequency
+    TCCR1B = (1 << WGM12) | (1 << CS10); // switch CTC Mode on, set prescaler to 1
+
+    TIMSK1 = 1 << OCIE1A; // OCIE1A: Interrupt by timer compare
+}
+
 int main() {
     /* Empfangenes Zeichen + Statuscode */
     uint16_t c = 0;
@@ -239,6 +262,8 @@ int main() {
 
     initCommunication();
     RS485_RECEIVE;
+
+    timer1_init(); // initialize timer 1
 
     /* Füllen der Puffer mit definierten Werten */
     memset(hex_buffer, 0x00, sizeof(hex_buffer));

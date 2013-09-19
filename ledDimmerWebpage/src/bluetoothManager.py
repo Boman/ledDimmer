@@ -66,12 +66,14 @@ class BluetoothManager:
                 content = message["hex"]
                 totalLength = len(content)
                 while len(content) > 0:
+                    # create a packet of 20 byte to send
                     tmp = content[:20]
                     content = content[20:]
+                    # calculate the length bytes
                     hex1 = hex(len(tmp) / 16)[-1:]
                     hex2 = hex(len(tmp) % 16)[-1:]
                     sending = "bh%s%s%s" % (hex1, hex2, tmp)
-                    #print "sending:", sending
+                    print "sending:", sending
                     try:
                         self.connection.send(sending)
                     except IOError:
@@ -122,10 +124,10 @@ class BluetoothManager:
                                         listener(message)
                                     message = self.extractMessage()
                 except IOError:
-                    pass
+                    sleep(1)
                 sleep(1)
             except IOError:
-                pass
+                sleep(1)
         
     def start(self):
         try:
