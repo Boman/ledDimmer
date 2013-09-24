@@ -24,6 +24,10 @@ volatile uint16_t irmpLastKeyPressCounter = 0;
 uint8_t disablePollSlave = 0;
 #endif
 
+#ifdef SLAVE
+uint16_t changedLight = 0;
+#endif
+
 // Timer 1 output compare A interrupt service routine, called every 1/15000 sec
 ISR( TIMER1_COMPA_vect) {
 	// Implementiere die ISR ohne zunaechst weitere IRQs zuzulassen
@@ -68,18 +72,26 @@ void timer1_init(void) {
 }
 
 void lightCommand(int8_t adressMask, int8_t lightType, int8_t value) {
+#ifdef MASTER
+	//send on uart 1
 	uart1_puts("ls");
 	uart1_putc(num2hex(adressMask));
 	uart1_putc(num2hex(lightType));
 	uart1_putc(num2hex((value & 0xF0) >> 4));
 	uart1_putc(num2hex(value & 0x0F));
-#ifdef MASTER
+	//send on uart 0
 	uart_puts("ls");
 	uart_putc(num2hex(adressMask));
 	uart_putc(num2hex(lightType));
 	uart_putc(num2hex((value & 0xF0) >> 4));
 	uart_putc(num2hex(value & 0x0F));
 #endif
+
+#ifdef SLAVE
+	// remember the changed light when master asks for change
+	changedLight |= 1 << lightType;
+#endif
+
 	setLightValue(adressMask, lightType, value);
 }
 
@@ -111,10 +123,7 @@ uint8_t max(uint8_t a, uint8_t b) {
 
 int16_t main() {
 	uint16_t c;
-
-#ifdef MASTER
 	uint8_t i, j;
-#endif
 
 	void (*bootloader)(void) = 0x1F000; // Achtung Falle: Hier Word-Adresse
 
@@ -193,7 +202,7 @@ int16_t main() {
 				break;
 			case INFO_ALIVE_MESSAGE_TYPE:
 				for (i = LIGHT_RED; i < LIGHT_SPEED; ++i) {
-					for (j = 1; j < 2; ++j) {
+					for (j = 0; j < 2; ++j) {
 						deactivateUpdatePWM = 1;
 						lightCommand(1 << j, i, getLightValue(j, i));
 					}
@@ -202,47 +211,58 @@ int16_t main() {
 			}
 #endif
 #ifdef SLAVE
-			rgbCommand(0, 0, (uint8_t) c);
 			switch (t) {
 				case ENOCEAN_MESSAGE_TYPE:
 				if (enoceanDecodeMsg(&msg) == OK) {
-					rgbCommand(0, 255, 0);
-					if(msg.id == 0x00) {
-						if(msg.org == 0x05) { //PTM switch msg?
-							if(msg.status & 0x10) { //NU=1? (Button pressed?)
-								if(((msg.data[0] & 0x20)>>5) == 0x00) { //UD=0? (I-Button)
-									switch ((msg.data[0] & 0xc0)>>6) {
+					if (msg.id == ENOCEAN_ID) {
+						if (msg.org == 0x05) { //PTM switch msg?
+							if (msg.status & 0x10) { //NU=1? (Button pressed?)
+								if ((msg.data[0] & 0x20) == 0x00) { //UD=0? (I-Button)
+									switch ((msg.data[0] & 0xc0) >> 6) {
 										case 0:
-										lightCommand(1 << 1, LIGHT_LED_BRIGHTNESS, 255);
+										if (getLightValue(LED2_ADRESS,
+														LIGHT_LED_BRIGHTNESS) != 255) {
+											lightCommand(1 << LED2_ADRESS,
+													LIGHT_LED_BRIGHTNESS, 255);
+										}
 										break;
 										case 1:
-										lightCommand(1 << 2, LIGHT_LED_BRIGHTNESS, 255);
+										if (getLightValue(LED1_ADRESS,
+														LIGHT_LED_BRIGHTNESS) != 255) {
+											lightCommand(1 << LED1_ADRESS,
+													LIGHT_LED_BRIGHTNESS, 255);
+										}
+										break;
+										default:
+										break;
+									}
+								} else if (msg.data[0] & 0x20) { //UD=1? (O-Button)
+									switch ((msg.data[0] & 0xc0) >> 6) {
+										case 0:
+										if (getLightValue(LED2_ADRESS,
+														LIGHT_LED_BRIGHTNESS) != 0) {
+											lightCommand(1 << LED2_ADRESS,
+													LIGHT_LED_BRIGHTNESS, 0);
+										}
+										break;
+										case 1:
+										if (getLightValue(LED1_ADRESS,
+														LIGHT_LED_BRIGHTNESS) != 0) {
+											lightCommand(1 << LED1_ADRESS,
+													LIGHT_LED_BRIGHTNESS, 0);
+										}
 										break;
 										default:
 										break;
 									}
 								}
-								else if(((msg.data[0] & 0x20)>>5) == 0x01) { //UD=1? (O-Button)
-									switch ((msg.data[0] & 0xc0)>>6) {
-										case 0:
-										lightCommand(1 << 1, LIGHT_LED_BRIGHTNESS, 0);
-										break;
-										case 1:
-										lightCommand(1 << 2, LIGHT_LED_BRIGHTNESS, 0);
-										break;
-										default:
-										break;
-									}
-								}
-							}
-							else if(((msg.status & 0x10)>>4) == 0x00) { //NU=0? (Button released?)
-								if(((msg.data[0] & 0xf0)>>4) == 0x00) { //0 Buttons & PR=0
+							} else if (((msg.status & 0x10) >> 4) == 0x00) { //NU=0? (Button released?)
+								if (((msg.data[0] & 0xf0) >> 4) == 0x00) { //0 Buttons & PR=0
 								}
 							}
 						}
 					}
 				} else {
-					rgbCommand(255, 0, 0);
 				}
 				break;
 			}
@@ -293,13 +313,22 @@ int16_t main() {
 				break;
 				case INFO_ALIVE_MESSAGE_TYPE:
 				//TODO add the code for wall switch changement
-				if(slaveChanged != 0) {
-					uart1_puts("ls");
-					uart1_putc('0'+ (1 << (slaveChanged - 1)));
-					uart1_putc('6');
-					uart1_putc(num2hex((getLightValue(slaveChanged, LIGHT_LED_BRIGHTNESS) & 0xF0) >> 4));
-					uart1_putc(num2hex(getLightValue(slaveChanged, LIGHT_LED_BRIGHTNESS) & 0x0F));
-					slaveChanged = 0;
+				if(changedLight != 0) {
+
+					for (i = LIGHT_RED; i < LIGHT_SPEED; ++i) {
+						if(changedLight & 1 << i) {
+							for (j = 0; j < 2; ++j) {
+								//send on uart 1
+								uart1_puts("ls");
+								uart1_putc(num2hex(1 << j));
+								uart1_putc(num2hex(i));
+								uart1_putc(num2hex((getLightValue(j, i) & 0xF0) >> 4));
+								uart1_putc(num2hex(getLightValue(j, i) & 0x0F));
+							}
+						}
+					}
+
+					changedLight = 0;
 				}
 				break;
 				case LIGHT_SET_MESSAGE_TYPE:
@@ -448,24 +477,24 @@ int16_t main() {
 			case IR_DIY6:
 				break;
 
-			case IR_AUTO:
-				lightCommand(3, LIGHT_PROGRAM, 2);
-				break;
-			case IR_FLASH:
-				lightCommand(3, LIGHT_PROGRAM, 3);
-				break;
-			case IR_JUMP3:
-				lightCommand(3, LIGHT_PROGRAM, 4);
-				break;
-			case IR_JUMP7:
-				lightCommand(3, LIGHT_PROGRAM, 5);
-				break;
-			case IR_FADE3:
-				lightCommand(3, LIGHT_PROGRAM, 6);
-				break;
-			case IR_FADE7:
-				lightCommand(3, LIGHT_PROGRAM, 7);
-				break;
+//			case IR_AUTO:
+//				lightCommand(3, LIGHT_PROGRAM, 2);
+//				break;
+//			case IR_FLASH:
+//				lightCommand(3, LIGHT_PROGRAM, 3);
+//				break;
+//			case IR_JUMP3:
+//				lightCommand(3, LIGHT_PROGRAM, 4);
+//				break;
+//			case IR_JUMP7:
+//				lightCommand(3, LIGHT_PROGRAM, 5);
+//				break;
+//			case IR_FADE3:
+//				lightCommand(3, LIGHT_PROGRAM, 6);
+//				break;
+//			case IR_FADE7:
+//				lightCommand(3, LIGHT_PROGRAM, 7);
+//				break;
 
 			}
 			break;
@@ -635,20 +664,7 @@ int16_t main() {
 			// poll slave
 			if (!disablePollSlave) {
 				uart1_puts("ia");
-				rs485Timer = INTERRUPTS_COUNT / 20;
-			}
-#endif
-
-#ifdef SLAVE
-			if (centiSeconds % 512 == 1) {
-
-//				if (getLightValue(LED1_ADRESS, LIGHT_LED_BRIGHTNESS) > 127) {
-//					setLightValue(1 << LED1_ADRESS, LIGHT_LED_BRIGHTNESS, 0);
-//				} else {
-//					setLightValue(1 << LED1_ADRESS, LIGHT_LED_BRIGHTNESS, 255);
-//				}
-//				slaveChanged = 1;
-				//uart_puts("\ngithub.com/Boman/ledDimmer\n");
+				rs485Timer = INTERRUPTS_COUNT / 10;
 			}
 #endif
 		}

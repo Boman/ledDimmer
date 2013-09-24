@@ -622,16 +622,13 @@ void uart1_putc(unsigned char data) {
 	UART1_TxHead = tmphead;
 
 #ifdef MASTER
-	if (rs485Timer == 0) {
-		RS485_SEND;
-		/* enable UDRE interrupt */
-		UART1_CONTROL |= _BV(UART1_UDRIE);
+	if (rs485Timer != 0) {
+		return;
 	}
 #endif
-#ifdef SLAVE
 	RS485_SEND;
+	/* enable UDRE interrupt */
 	UART1_CONTROL |= _BV(UART1_UDRIE);
-#endif
 
 }/* uart1_putc */
 

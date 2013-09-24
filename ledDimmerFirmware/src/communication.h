@@ -14,7 +14,8 @@
 #include "config.h"
 #include "uart/uart.h"
 
-#define UART_BAUD_RATE	9600
+#define UART_BAUD_RATE	       9600
+#define UART_BAUD_RATE_BIDI	   38400
 
 #define RS485_INIT				(RS485_DIRECTION_DDR |= 1 << RS485_DIRECTION_PIN)
 #define RS485_SEND			(RS485_DIRECTION_PORT |= 1 << RS485_DIRECTION_PIN)

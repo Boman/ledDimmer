@@ -121,8 +121,8 @@ uint8_t decodeMessage0(uint8_t c) {
 		messageBuffer0[0] = 0;
 		return messageType0;
 	}
-#ifdef SLAVE
 #endif
+#ifdef SLAVE
 	// SLAVE Protocol
 	switch (messageBuffer0[0]) {
 	case 1:
@@ -368,13 +368,14 @@ uint8_t enoceanDecodeMsg(struct EnoceanMsg* msg) {
 
 void initCommunication() {
 	messageBuffer0[0] = 0;
-	uart_init(UART_BAUD_SELECT(UART_BAUD_RATE, F_CPU));
 #ifdef SLAVE
+#define sbi(ADDRESS,BIT) ((ADDRESS) |= (1<<(BIT)))
 	// pull up for enocean
-	PORTD &= 1 << PD2;
+	PORTD |= 1 << PD0;
 #endif
+	uart_init(UART_BAUD_SELECT(UART_BAUD_RATE, F_CPU));
 
 	messageBuffer1[0] = 0;
-	uart1_init(UART_BAUD_SELECT(UART_BAUD_RATE, F_CPU));
+	uart1_init(UART_BAUD_SELECT(UART_BAUD_RATE_BIDI, F_CPU));
 	RS485_INIT;
 }

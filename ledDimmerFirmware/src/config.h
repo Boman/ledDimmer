@@ -27,6 +27,8 @@
 #define LED1_ADRESS                 1
 #define LED2_ADRESS                 0
 
+#define ENOCEAN_ID					0x008AEFEB
+
 #define LED_OUTPUT_DDR              DDRB
 #define LED_OUTPUT_PORT             PORTB
 #define LED_OUTPUT_PIN              PB5
