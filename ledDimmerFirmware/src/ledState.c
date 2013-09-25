@@ -30,7 +30,7 @@ volatile uint8_t rgbSpeedOld = START_SPEED;
 // the actual position in the rgb program
 volatile uint8_t rgbProgramProgress = 0;
 
-#define C_WHITE                       255, 255, 255
+#define C_WHITE                       255, 255, 220
 #define C_BLACK                       0, 0, 0
 #define C_RED                         255, 0, 0
 #define C_GREEN                       0, 255, 0
@@ -54,7 +54,7 @@ const uint8_t rgbProgram[] PROGMEM = { C_WHITE, // startup program
         C_WHITE, C_WHITE, C_WHITE, C_WHITE, C_WHITE, C_WHITE, C_WHITE // fade7
         };
 
-const uint16_t rgbProgramTimes[] PROGMEM = { 100, // startup program
+const uint16_t rgbProgramTimes[] PROGMEM = { 50, // startup program
         100, 100, // auto program
         0, 100, 0, 100, // flash program
         0, 100, 0, 100, 0, 100, // jump3

@@ -90,25 +90,25 @@
 #define IR_FADE3                    6
 #define IR_FADE7                    7
 
-#define COLOR_RED                   255, 0, 0
-#define COLOR_GREEN                 0, 255, 0
-#define COLOR_BLUE                  0, 0, 255
-#define COLOR_WHITE                 255, 255, 255
-#define COLOR_DARK_RED              255, 255, 255
-#define COLOR_DARK_GREEN            255, 255, 255
-#define COLOR_DARK_BLUE             255, 255, 255
-#define COLOR_LIGHT_PINK            255, 255, 255
-#define COLOR_ORANGE                255, 255, 255
-#define COLOR_CYAN                  255, 255, 255
-#define COLOR_MIDNIGHT_BLUE         255, 255, 255
-#define COLOR_PINK                  255, 255, 255
-#define COLOR_LIGHT_YELLOW          255, 255, 255
-#define COLOR_JUNGLE_GREEN          255, 255, 255
-#define COLOR_VIOLET                255, 255, 255
-#define COLOR_SKY_BLUE              255, 255, 255
-#define COLOR_YELLOW                255, 255, 255
-#define COLOR_COBALT                255, 255, 255
-#define COLOR_MAGENTA               255, 255, 255
+#define COLOR_RED                   255, 0,   0
+#define COLOR_GREEN                 0,   255, 0
+#define COLOR_BLUE                  0,   0,   255
+#define COLOR_WHITE                 255, 255, 220
+#define COLOR_DARK_RED              235, 40,  10
+#define COLOR_DARK_GREEN            0,   255, 200
+#define COLOR_DARK_BLUE             0,   0,   220
+#define COLOR_LIGHT_PINK            255, 195, 220
+#define COLOR_ORANGE                255, 165, 0
+#define COLOR_CYAN                  0,   255, 255
+#define COLOR_MIDNIGHT_BLUE         0,   0,   200
+#define COLOR_PINK                  255, 155, 225
+#define COLOR_LIGHT_YELLOW          255, 235, 50
+#define COLOR_JUNGLE_GREEN          0,   230, 255
+#define COLOR_VIOLET                235, 0,   255
+#define COLOR_SKY_BLUE              255, 255, 240
+#define COLOR_YELLOW                255, 210, 0
+#define COLOR_COBALT                0,   200, 255
+#define COLOR_MAGENTA               255, 35,  85
 #define COLOR_LIGHT_BLUE            255, 255, 255
 
 #endif /* CONFIG_H_ */

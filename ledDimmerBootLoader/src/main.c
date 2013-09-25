@@ -256,9 +256,9 @@ int main() {
     SREG = sregtemp;
 
     LEDS_INIT;
-    LED_ON(LED_GREEN);
     LED_OFF(LED_RED);
-    LED_ON(LED_BLUE);
+    LED_OFF(LED_GREEN);
+    LED_OFF(LED_BLUE);
 
     initCommunication();
     RS485_RECEIVE;
@@ -273,9 +273,11 @@ int main() {
     sei();
 
 #ifdef MASTER
+    LED_ON(LED_BLUE);
     uart_puts("bs01");
 #endif
 #ifdef SLAVE
+    LED_ON(LED_GREEN);
     uart1_puts("bs02");
 #endif
 
@@ -301,10 +303,10 @@ int main() {
                 switch (parser_state) {
                 case PARSER_STATE_START:
                 case PARSER_STATE_ERROR:
-                    LED_OFF(LED_BLUE);
+                    LED_ON(LED_RED);
                     break;
                 default:
-                    LED_ON(LED_BLUE);
+                    LED_OFF(LED_RED);
                     break;
                 }
                 break;

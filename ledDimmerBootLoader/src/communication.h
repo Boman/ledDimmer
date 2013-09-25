@@ -14,7 +14,13 @@
 #include "config.h"
 #include "uart/uart.h"
 
+#ifdef MASTER
 #define UART_BAUD_RATE	9600
+#elif defined SLAVE
+#define UART_BAUD_RATE	38400
+#else
+#error "choose Target MASTER or SLAVE"
+#endif
 
 #define RS485_INIT				(RS485_DIRECTION_DDR |= 1 << RS485_DIRECTION_PIN)
 #define RS485_SEND			(RS485_DIRECTION_PORT |= 1 << RS485_DIRECTION_PIN)

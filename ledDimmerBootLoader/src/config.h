@@ -10,7 +10,6 @@
 
 #ifdef MASTER
 #define DEVICE_ID 1
-#define IR_DEVICE
 #elif defined SLAVE
 #define  DEVICE_ID 2
 #else

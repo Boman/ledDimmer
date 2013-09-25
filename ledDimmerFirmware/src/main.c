@@ -151,7 +151,6 @@ int16_t main() {
 	initDimmer();
 	nextStepRGBProgram(0);
 	LED_OUTPUT_INIT;
-	LED_OUTPUT_ON;
 
 	sei();
 
@@ -220,16 +219,16 @@ int16_t main() {
 								if ((msg.data[0] & 0x20) == 0x00) { //UD=0? (I-Button)
 									switch ((msg.data[0] & 0xc0) >> 6) {
 										case 0:
-										if (getLightValue(LED2_ADRESS,
+										if (getLightValue(LED1_ADRESS,
 														LIGHT_LED_BRIGHTNESS) != 255) {
-											lightCommand(1 << LED2_ADRESS,
+											lightCommand(1 << LED1_ADRESS,
 													LIGHT_LED_BRIGHTNESS, 255);
 										}
 										break;
 										case 1:
-										if (getLightValue(LED1_ADRESS,
+										if (getLightValue(LED2_ADRESS,
 														LIGHT_LED_BRIGHTNESS) != 255) {
-											lightCommand(1 << LED1_ADRESS,
+											lightCommand(1 << LED2_ADRESS,
 													LIGHT_LED_BRIGHTNESS, 255);
 										}
 										break;
@@ -239,16 +238,16 @@ int16_t main() {
 								} else if (msg.data[0] & 0x20) { //UD=1? (O-Button)
 									switch ((msg.data[0] & 0xc0) >> 6) {
 										case 0:
-										if (getLightValue(LED2_ADRESS,
+										if (getLightValue(LED1_ADRESS,
 														LIGHT_LED_BRIGHTNESS) != 0) {
-											lightCommand(1 << LED2_ADRESS,
+											lightCommand(1 << LED1_ADRESS,
 													LIGHT_LED_BRIGHTNESS, 0);
 										}
 										break;
 										case 1:
-										if (getLightValue(LED1_ADRESS,
+										if (getLightValue(LED2_ADRESS,
 														LIGHT_LED_BRIGHTNESS) != 0) {
-											lightCommand(1 << LED1_ADRESS,
+											lightCommand(1 << LED2_ADRESS,
 													LIGHT_LED_BRIGHTNESS, 0);
 										}
 										break;
@@ -655,7 +654,7 @@ int16_t main() {
 			ledStateCallback(1);
 			if (programReady) {
 				if (getLightValue(DEVICE_ID - 1, LIGHT_PROGRAM) == 1) {
-					rgbCommand(255, 255, 255);
+					rgbCommand(COLOR_WHITE);
 				}
 				programReady = 0;
 			}
